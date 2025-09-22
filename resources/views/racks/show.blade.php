@@ -19,7 +19,6 @@
 
     <div class="card-body">
         <div class="row">
-
             <div class="col-md-6 mb-4">
                 <div class="card h-100">
                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
@@ -132,10 +131,31 @@
                 </div>
             </div>
         </div>
+
+        <!-- Seção dos desenhos -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h3 class="h6 mb-0">Diagrama de Equipamentos</h3>
+                    </div>
+                    <div class="card-body">
+                        @include('racks.partials.equipment')
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h3 class="h6 mb-0">Diagrama de Patch Panels</h3>
+                    </div>
+                    <div class="card-body">
+                        @include('racks.partials.patch_panel')
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-@include('racks.partials.patch_panel')
-
 
 @endsection
