@@ -13,6 +13,8 @@ class EquipamentoController extends Controller
             return response('Unauthorized action.', 403);
         }
 
+        die($request->hostname);
+
         $request->validate([
             'hostname' => 'required',
             'model' => 'required',
@@ -23,9 +25,7 @@ class EquipamentoController extends Controller
 
         ]);
 
-        $hostname = str_replace('a', '', $request->hostname);
-
-        $equipamento = Equipamento::where('hostname',$hostname)->first();
+        $equipamento = Equipamento::where('hostname',$request->hostname)->first();
         if(!$equipamento) $equipamento = new Equipamento;
 
         $equipamento->hostname = $hostname;
