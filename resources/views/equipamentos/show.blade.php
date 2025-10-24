@@ -32,6 +32,14 @@
                             <li class="list-group-item"><strong>Modelo:</strong> {{ $equipamento->model }}</li>
                             <li class="list-group-item"><strong>IP:</strong> {{ $equipamento->ip }}</li>
                             <li class="list-group-item"><strong>Quantidade de Portas:</strong> {{ $equipamento->qtde_portas }}</li>
+                            <li class="list-group-item">
+                                <strong>PoE:</strong> 
+                                @if($equipamento->poe_type)
+                                    <span class="badge bg-success">Sim</span>
+                                @else
+                                    <span class="badge bg-secondary">Não</span>
+                                @endif
+                            </li>
                             <li class="list-group-item"><strong>Prédio:</strong> {{ $equipamento->rack->predio->nome }}</li>
                             <li class="list-group-item"><strong>Rack:</strong> {{ $equipamento->rack->nome }}</li>
                         </ul>

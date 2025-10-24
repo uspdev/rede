@@ -65,6 +65,19 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="poe_type" name="poe_type" 
+                        value="1" {{ old('poe_type', $equipamento->poe_type) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="poe_type">
+                        Equipamento possui PoE (Power over Ethernet)
+                    </label>
+                </div>
+                @error('poe')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+            </div>
             
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-success">

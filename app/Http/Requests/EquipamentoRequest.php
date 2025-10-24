@@ -29,6 +29,7 @@ class EquipamentoRequest extends FormRequest
             'ip' => 'required|ip',
             'qtde_portas' => 'required|integer|min:1|max:48',
             'rack_id' => 'required|exists:racks,id',
+            'poe_type' => 'boolean' 
         ];
 
         return $rules;
@@ -49,7 +50,8 @@ class EquipamentoRequest extends FormRequest
             'qtde_portas.min' => 'A quantidade de portas deve ser pelo menos 1',
             'qtde_portas.max' => 'A quantidade de portas não pode ser maior que 48',
             'rack_id.required' => 'Selecione um rack',
-            'rack_id.exists' => 'Rack selecionado é inválido'
+            'rack_id.exists' => 'Rack selecionado é inválido',
+            'poe_type.boolean' => 'O campo PoE deve ser verdadeiro ou falso'
         ];
     }
 }
