@@ -16,7 +16,12 @@ class Equipamento extends Model
         'ip',
         'qtde_portas',
         'rack_id',
-        'user_id' 
+        'user_id',
+        'poe_type' 
+    ];
+
+    protected $casts = [
+        'poe_type' => 'boolean' 
     ];
 
     public function portas()

@@ -8,39 +8,32 @@ use App\Models\Equipamento;
 
 class EquipamentoController extends Controller
 {
-    public function store(Request $request){
-        if($request->header('Authorization') != env('authorization_key')){
-            return response('Unauthorized action.', 403);
+    public function store(Request $request)
+    {
+        // Verificar autorização
+        if($request->header('Authorization') != env('AUTHORIZATION_KEY')){
+            return response()->json(['error' => 'Unauthorized action.'], 403);
         }
 
-        die($request->hostname);
-
-        $request->validate([
+        // Validação dos campos
+        $validated = $request->validate([
             'hostname' => 'required',
             'model' => 'required',
-            'ip' => 'required',
-            'poe_type' => 'required',
-            'local' => 'required',
-            'position' => 'required',
-
+            'ip' => 'required|ip',
+            'qtde_portas' => 'required|integer|min:1|max:48',
+            'rack_id' => 'required|exists:racks,id',
+            'user_id' => 'required|exists:users,id',
+            'poe_type' => 'boolean'
         ]);
 
-        $equipamento = Equipamento::where('hostname',$request->hostname)->first();
-        if(!$equipamento) $equipamento = new Equipamento;
+        $equipamento = Equipamento::updateOrCreate(
+            ['hostname' => $validated['hostname']],
+            $validated
+        );
 
-        $equipamento->hostname = $hostname;
-        $equipamento->model = $request->model;
-        $equipamento->poe_type = $request->poe_type;
-        $equipamento->ip = $request->ip;
-        $equipamento->local = $request->local;
-        $equipamento->position = $request->position;
-
-        $equipamento->uplink_extra_ports = $request->uplink_extra_ports;
-        $equipamento->rep_ports = $request->rep_ports;
-        $equipamento->printer_ports = $request->printer_ports;
-        $equipamento->ignore_ports = $request->ignore_ports;
-        $equipamento->save();
-
-        return response()->json($equipamento);
-    }   
+        return response()->json([
+            'message' => 'Equipamento criado/atualizado com sucesso',
+            'equipamento' => $equipamento
+        ], 201);
+    }
 }
