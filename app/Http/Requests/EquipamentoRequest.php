@@ -29,7 +29,7 @@ class EquipamentoRequest extends FormRequest
             'ip' => 'required|ip',
             'qtde_portas' => 'required|integer|min:1|max:48',
             'rack_id' => 'required|exists:racks,id',
-            'poe_type' => 'boolean' 
+            'poe_type' => 'boolean'
         ];
 
         return $rules;
