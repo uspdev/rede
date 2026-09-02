@@ -6,7 +6,7 @@
         <h1>Editar Patch Panel: {{ $patchPanel->nome }}</h1>
     </div>
     <div class="card-body">
-        <form action="/patch-panels/{{ $patchPanel->id }}" method="POST">
+        <form action="{{ route('patch-panels.update', ['patchPanel' => $patchPanel]) }}" method="POST">
             @csrf
             @method('PUT')
             

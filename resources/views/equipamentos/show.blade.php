@@ -12,7 +12,7 @@
                 </small>
             </span>
             <div>
-                <a href="/racks/{{ $equipamento->rack_id }}" class="btn btn-secondary">
+                <a href="{{ route('racks.show', ['rack' => $equipamento->rack_id]) }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Voltar
                 </a>
             </div>

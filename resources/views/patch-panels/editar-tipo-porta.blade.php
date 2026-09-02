@@ -9,7 +9,7 @@
         </h1>
     </div>
     <div class="card-body">
-        <form action="/patch-panels/{{ $patchPanel->id }}/atualizar-tipo-porta/{{ $sala->id }}" method="POST">
+        <form action="{{ route('patch-panels.atualizar-tipo-porta', ['patchPanel' => $patchPanel, 'sala' => $sala]) }}" method="POST">
             @csrf
             @method('PUT')
             <input type="hidden" name="porta" value="{{ $porta }}">
@@ -43,7 +43,7 @@
 
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">Atualizar Tipo de Porta</button>
-                <a href="/patch-panels/{{ $patchPanel->id }}" class="btn btn-secondary">Cancelar</a>
+                <a href="{{ route('patch-panels.show', ['patchPanel' => $patchPanel]) }}" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
     </div>

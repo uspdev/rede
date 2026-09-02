@@ -21,7 +21,7 @@
                         <div class="card-body">
                             <div class="list-group">
                                 @foreach($patchPanels as $pp)
-                                    <a href="/salas/{{ $sala->id }}/selecionar-patchpanel/{{ $rack->id }}?patch_panel_id={{ $pp->id }}" 
+                                    <a href="{{ route('salas.selecionar-patchpanel', ['sala' => $sala, 'rack' => $rack, 'patch_panel_id' => $pp->id]) }}"
                                        class="list-group-item list-group-item-action {{ request('patch_panel_id') == $pp->id ? 'active' : '' }}">
                                         {{ $pp->nome }}
                                     </a>
@@ -38,7 +38,7 @@
                         $tipoPortas = \App\Models\TipoPorta::all();
                     @endphp
                     <div class="col-md-8">
-                        <form action="/salas/{{ $sala->id }}/vincular-patchpanel" method="POST">
+                        <form action="{{ route('salas.vincular-patchpanel', ['sala' => $sala]) }}" method="POST">
                             @csrf
                             <input type="hidden" name="rack_id" value="{{ $rack->id }}">
                             <input type="hidden" name="patch_panel_id" value="{{ $selectedPP->id }}">
@@ -91,7 +91,7 @@
                                 </div>
                                 <div class="card-footer bg-light">
                                     <div class="d-flex justify-content-between">
-                                        <a href="/salas/{{ $sala->id }}/selecionar-rack" class="btn btn-secondary">Voltar</a>
+                                        <a href="{{ route('salas.selecionar-rack', ['sala' => $sala]) }}" class="btn btn-secondary">Voltar</a>
                                         @if(count($portasOcupadas) < $selectedPP->qtde_portas)
                                             <button type="submit" class="btn btn-primary">Vincular Portas Selecionadas</button>
                                         @endif

@@ -6,7 +6,7 @@
         <h1>Editar Local: {{ $sala->nome }}</h1>
     </div>
     <div class="card-body">
-        <form action="/salas/{{ $sala->id }}" method="POST">
+        <form action="{{ route('salas.update', ['sala' => $sala]) }}" method="POST">
             @csrf
             @method('PUT')
             <div class="mb-3">

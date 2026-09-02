@@ -13,7 +13,7 @@
                     Rack: {{ $patchPanel->rack->nome }} | Prédio: {{ $patchPanel->rack->predio->nome }}
                 </small>
             </span>
-            <a href="/racks/{{ $patchPanel->rack->id }}" class="btn btn-secondary">
+            <a href="{{ route('racks.show', ['rack' => $patchPanel->rack]) }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Voltar
             </a>
         </div>
@@ -88,7 +88,7 @@
                                 </td>
                                 <td>
                                     @if($vinculo && $vinculo->pivot->planta_id)
-                                        <a href="/plantas/{{ $vinculo->pivot->planta_id }}/edit" class="btn btn-sm btn-info">
+                                        <a href="{{ route('plantas.edit', ['planta' => $vinculo->pivot->planta_id]) }}" class="btn btn-sm btn-info">
                                             Ver Planta
                                         </a>
                                     @else
@@ -98,11 +98,11 @@
                                     @can('user')
                                     @if($vinculo)
                                         <div class="btn-group" role="group">
-                                            <a href="/patch-panels/{{ $patchPanel->id }}/editar-tipo-porta/{{ $vinculo->id }}?porta={{ $porta }}" 
+                                            <a href="{{ route('patch-panels.editar-tipo-porta', ['patchPanel' => $patchPanel, 'sala' => $vinculo, 'porta' => $porta]) }}"
                                             class="btn btn-warning btn-sm">
                                                 Editar
                                             </a>
-                                            <form action="/patch-panels/{{ $patchPanel->id }}/desvincular-sala/{{ $vinculo->id }}?porta={{ $porta }}" method="POST" class="d-inline">
+                                            <form action="{{ route('patch-panels.desvincular-sala', ['patchPanel' => $patchPanel, 'sala' => $vinculo, 'porta' => $porta]) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja desvincular esta porta?')">
@@ -111,7 +111,7 @@
                                             </form>
                                         </div>
                                     @else
-                                        <a href="/patch-panels/{{ $patchPanel->id }}/selecionar-sala?porta={{ $porta }}" class="btn btn-primary btn-sm">
+                                        <a href="{{ route('patch-panels.selecionar-sala', ['patchPanel' => $patchPanel, 'porta' => $porta]) }}" class="btn btn-primary btn-sm">
                                             Vincular
                                         </a>
                                     @endif

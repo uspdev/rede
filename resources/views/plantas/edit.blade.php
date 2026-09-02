@@ -6,7 +6,7 @@
         <h5 class="card-title mb-0">Editar Planta Baixa: {{ $planta->name }}</h5>
     </div>
     <div class="card-body">
-        <form method="POST" enctype="multipart/form-data" action="/plantas/{{ $planta->id }}">
+        <form method="POST" enctype="multipart/form-data" action="{{ route('plantas.update', ['planta' => $planta]) }}">
             @csrf
             @method('PUT')
 
@@ -107,7 +107,7 @@
 
             <!-- Ações -->
             <div class="d-flex justify-content-between align-items-center">
-                <a href="/plantas/{{ $planta->predio_id }}" class="btn btn-secondary">
+                <a href="{{ route('plantas.index', ['predio' => $planta->predio_id]) }}" class="btn btn-secondary">
                     Cancelar
                 </a>
                 <button type="submit" class="btn btn-success px-4">

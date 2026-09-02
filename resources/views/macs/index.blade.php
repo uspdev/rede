@@ -11,7 +11,7 @@
         <li class="list-group-item">
             {{ $mac->mac }} -
             {{ $mac->snapshot->coletado_em }} -
-            <a href="/equipamentos/{{ $mac->snapshot->porta->equipamento->id }}">
+            <a href="{{ route('equipamentos.show', ['equipamento' => $mac->snapshot->porta->equipamento]) }}">
                 {{ $mac->snapshot->porta->equipamento->hostname }}
             </a> -
             {{ $mac->snapshot->porta->porta }} -

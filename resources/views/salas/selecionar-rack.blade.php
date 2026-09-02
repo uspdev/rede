@@ -11,7 +11,7 @@
     <div class="card-body">
         <div class="list-group">
             @foreach($racks as $rack)
-            <a href="/salas/{{ $sala->id }}/selecionar-patchpanel/{{ $rack->id }}" class="list-group-item list-group-item-action">
+            <a href="{{ route('salas.selecionar-patchpanel', ['sala' => $sala, 'rack' => $rack]) }}" class="list-group-item list-group-item-action">
                 {{ $rack->nome }}
                 <small class="text-muted float-right">{{ $rack->patchPanels->count() }} patch panels</small>
             </a>
@@ -19,7 +19,7 @@
         </div>
         
         <div class="mt-3">
-            <a href="/salas/{{ $sala->id }}" class="btn btn-secondary">Voltar</a>
+            <a href="{{ route('salas.show', ['sala' => $sala]) }}" class="btn btn-secondary">Voltar</a>
         </div>
     </div>
 </div>

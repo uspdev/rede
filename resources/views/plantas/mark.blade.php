@@ -2,7 +2,7 @@
 <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-    <a href="/plantas/{{ $planta->predio_id }}" style="text-decoration: none; color: #000; background-color: #f0f0f0; padding: 6px 12px; border-radius: 4px; font-size: 14px;">
+    <a href="{{ route('plantas.index', ['predio' => $planta->predio_id]) }}" style="text-decoration: none; color: #000; background-color: #f0f0f0; padding: 6px 12px; border-radius: 4px; font-size: 14px;">
         &larr; Voltar
     </a>
 
@@ -22,7 +22,7 @@
     <div id="panzoom-target" style="position: relative; width: 100%; transform-origin: 0 0; cursor: grab;">
 
         <!-- Imagem SVG da Planta Baixa -->
-        <img id="svg-image" src="{{ '/plantas/' . $planta->predio_id . '/' . $planta->id }}" style="width: 100%; height: auto; display: block; user-select: none;" draggable="false" alt="Planta Baixa">
+        <img id="svg-image" src="{{ route('plantas.show', ['predio' => $planta->predio_id, 'planta' => $planta]) }}" style="width: 100%; height: auto; display: block; user-select: none;" draggable="false" alt="Planta Baixa">
 
         <!-- Renderização dos Marcadores Salvos -->
         @include('plantas.partials.markers')
@@ -38,7 +38,7 @@
         <strong id="formTitle" style="display: block; font-size: 13px; margin-bottom: 8px;">Selecione o Ponto:</strong>
 
         <!-- Formulário Unificado: Salvar/Atualizar -->
-        <form action="/plantas/{{ $planta->id }}/mark" method="POST" id="mainForm">
+        <form action="{{ route('plantas.mark.update', ['planta' => $planta]) }}" method="POST" id="mainForm">
             @csrf
             <input type="hidden" name="_method" id="formMethod" value="PUT">
 
@@ -138,6 +138,8 @@
 </div>
 
 <script>
+    const plantaMarkUrl = @json(route('plantas.mark.update', ['planta' => $planta]));
+    const plantaUnmarkUrlTemplate = @json(route('plantas.unmark', ['patch_panel_sala_id' => '__ID__']));
     const viewport = document.getElementById('viewport');
     const panzoomTarget = document.getElementById('panzoom-target');
     const svgImage = document.getElementById('svg-image');
@@ -216,7 +218,7 @@
 
         document.getElementById('formTitle').innerText = 'Editar Ponto: ' + markerNome;
 
-        mainForm.action = "/plantas/{{ $planta->id }}/mark";
+        mainForm.action = plantaMarkUrl;
         document.getElementById('formMethod').value = 'PUT';
         document.getElementById('btnSalvar').innerText = 'Atualizar Ponto';
 
@@ -263,7 +265,7 @@
         }
 
         // Configura rota de remoção
-        deleteForm.action = `/plantas/${markerId}/unmark`;
+        deleteForm.action = plantaUnmarkUrlTemplate.replace('__ID__', markerId);
         deleteForm.style.display = 'block';
 
         posicionarPopover(event);
@@ -279,7 +281,7 @@
         }
 
         document.getElementById('formTitle').innerText = 'Selecione o Ponto:';
-        mainForm.action = "/plantas/{{ $planta->id }}/mark";
+        mainForm.action = plantaMarkUrl;
         document.getElementById('formMethod').value = 'PUT';
 
         document.getElementById('inputX').value = x.toFixed(2);

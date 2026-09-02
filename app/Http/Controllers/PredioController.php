@@ -27,7 +27,7 @@ class PredioController extends Controller
         Gate::authorize('admin');
         Predio::create($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Prédio criado com sucesso!');
-        return redirect('/predios');
+        return redirect()->route('predios.index');
     }
 
     public function show(Predio $predio)
@@ -51,7 +51,7 @@ class PredioController extends Controller
         Gate::authorize('admin');
         $predio->update($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Prédio atualizado com sucesso!');
-        return redirect('/predios');
+        return redirect()->route('predios.index');
     }
 
     public function destroy(Predio $predio)
@@ -69,6 +69,6 @@ class PredioController extends Controller
         } else {
             session()->flash('alert-danger', 'Prédio não deletado, pois possui salas ou racks cadastrados!');
         }
-        return redirect('/predios');
+        return redirect()->route('predios.index');
     }
 }

@@ -32,7 +32,7 @@ class SalaController extends Controller
         Sala::create($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Sala criada com sucesso!');
 
-        return redirect("/predios/{$request->predio_id}");
+        return redirect()->route('predios.show', ['predio' => $request->predio_id]);
     }
 
     public function show(Sala $sala)
@@ -70,7 +70,7 @@ class SalaController extends Controller
         $sala->update($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Sala atualizada com sucesso!');
 
-        return redirect("/salas/{$sala->id}");
+        return redirect()->route('salas.show', ['sala' => $sala]);
     }
 
     public function selecionarRack(Sala $sala)
@@ -133,7 +133,7 @@ class SalaController extends Controller
         }
 
         session()->flash('alert-success', 'Portas vinculadas com sucesso!');
-        return redirect("/salas/{$sala->id}");
+        return redirect()->route('salas.show', ['sala' => $sala]);
     }
 
     public function desvincularPatchPanel(Sala $sala, PatchPanel $patchPanel, Request $request)
@@ -148,7 +148,7 @@ class SalaController extends Controller
 
         session()->flash('alert-success', 'Porta desvinculada com sucesso!');
 
-        return redirect("/salas/{$sala->id}");
+        return redirect()->route('salas.show', ['sala' => $sala]);
     }
 
     public function editarTipoPorta(Sala $sala, PatchPanel $patchPanel, Request $request)
@@ -164,7 +164,7 @@ class SalaController extends Controller
 
         if (!$vinculo) {
             session()->flash('alert-danger', 'Vínculo não encontrado!');
-            return redirect("/salas/{$sala->id}");
+            return redirect()->route('salas.show', ['sala' => $sala]);
         }
 
         return view('salas.editar-tipo-porta', [
@@ -196,7 +196,7 @@ class SalaController extends Controller
             ]);
 
         session()->flash('alert-success', 'Tipo de porta atualizado com sucesso!');
-        return redirect("/salas/{$sala->id}");
+        return redirect()->route('salas.show', ['sala' => $sala]);
     }
 
     public function destroy(Sala $sala)
