@@ -6,7 +6,7 @@
         <h1>Cadastrar Novo Tipo de Porta</h1>
     </div>
     <div class="card-body">
-        <form action="/tipo-portas" method="POST">
+        <form action="{{ route('tipo-portas.store') }}" method="POST">
             @csrf
             
             {{-- Campo Nome --}}
@@ -46,7 +46,7 @@
             {{-- Ações --}}
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-success">Salvar</button>
-                <a href="/tipo-portas" class="btn btn-secondary">Cancelar</a>
+                <a href="{{ route('tipo-portas.index') }}" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
     </div>

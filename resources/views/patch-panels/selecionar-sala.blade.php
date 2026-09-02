@@ -11,7 +11,7 @@
     <div class="card-body">
         <div class="list-group">
             @foreach($salasPredio as $sala)
-            <a href="/patch-panels/{{ $patchPanel->id }}/selecionar-tipo-porta/{{ $sala->id }}?porta={{ $porta }}" 
+            <a href="{{ route('patch-panels.selecionar-tipo-porta', ['patchPanel' => $patchPanel, 'sala' => $sala, 'porta' => $porta]) }}"
                class="list-group-item list-group-item-action">
                 Local: {{ $sala->nome }}
             </a>
@@ -19,7 +19,7 @@
         </div>
         
         <div class="mt-3">
-            <a href="/patch-panels/{{ $patchPanel->id }}" class="btn btn-secondary">Voltar</a>
+            <a href="{{ route('patch-panels.show', ['patchPanel' => $patchPanel]) }}" class="btn btn-secondary">Voltar</a>
         </div>
     </div>
 </div>

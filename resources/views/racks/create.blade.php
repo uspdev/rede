@@ -6,7 +6,7 @@
         <h1>Cadastrar Novo Rack</h1>
     </div>
     <div class="card-body">
-        <form action="/racks" method="POST">
+        <form action="{{ route('racks.store') }}" method="POST">
             @csrf
             
             <div class="mb-3">

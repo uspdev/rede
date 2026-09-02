@@ -7,7 +7,7 @@
             <h1 class="h4 mb-0 text-dark">
                 <i class="fas fa-plug"></i> Tipos de Porta
             </h1>
-            <a href="/tipo-portas/create" class="btn btn-success">
+            <a href="{{ route('tipo-portas.create') }}" class="btn btn-success">
                 <i class="fas fa-plus"></i> Novo Tipo
             </a>
         </div>
@@ -30,8 +30,8 @@
                             <td>{{ $tipoPorta->nome }}</td>
                             <td>
                                 <div class="btn-group">
-                                    <a href="/tipo-portas/{{ $tipoPorta->id }}/edit" class="btn btn-warning btn-sm">Editar</a>
-                                    <form action="/tipo-portas/{{ $tipoPorta->id }}" method="POST">
+                                    <a href="{{ route('tipo-portas.edit', ['tipoPorta' => $tipoPorta]) }}" class="btn btn-warning btn-sm">Editar</a>
+                                    <form action="{{ route('tipo-portas.destroy', ['tipoPorta' => $tipoPorta]) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este tipo de porta?')">

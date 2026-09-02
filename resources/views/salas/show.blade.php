@@ -14,7 +14,7 @@
                 <i class="fas fa-door-open"></i> Local: {{ $sala->nome }}
                 <small class="text-muted d-block">{{ $sala->predio->nome }}</small>
             </h1>
-            <a href="/predios/{{ $sala->predio->id }}" class="btn btn-secondary">
+            <a href="{{ route('predios.show', ['predio' => $sala->predio]) }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Voltar
             </a>
         </div>
@@ -23,7 +23,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3>Portas Vinculadas</h3>
             @can('user')
-            <a href="/salas/{{ $sala->id }}/selecionar-rack" class="btn btn-success">
+            <a href="{{ route('salas.selecionar-rack', ['sala' => $sala]) }}" class="btn btn-success">
                 <i class="fas fa-link"></i> Vincular a uma Porta
             </a>
             @endcan
@@ -64,11 +64,11 @@
                             <td>
                                 @can('user')
                                     <div class="btn-group" role="group">
-                                        <a href="/salas/{{ $sala->id }}/editar-tipo-porta/{{ $pp->id }}?porta={{ $pp->pivot->porta }}" 
+                                        <a href="{{ route('salas.editar-tipo-porta', ['sala' => $sala, 'patchPanel' => $pp, 'porta' => $pp->pivot->porta]) }}"
                                         class="btn btn-warning btn-sm">
                                             Editar tipo de porta
                                         </a>
-                                        <form action="/salas/{{ $sala->id }}/desvincular-patchpanel/{{ $pp->id }}?porta={{ $pp->pivot->porta }}" method="POST">
+                                        <form action="{{ route('salas.desvincular-patchpanel', ['sala' => $sala, 'patchPanel' => $pp, 'porta' => $pp->pivot->porta]) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja desvincular esta porta?')">

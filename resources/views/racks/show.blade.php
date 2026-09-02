@@ -11,7 +11,7 @@
                 <i class="fas fa-server"></i> Rack: {{ $rack->nome }}
                 <small class="text-muted">{{ $rack->predio->nome }}</small>
             </span>
-            <a href="/predios/{{ $rack->predio->id }}" class="btn btn-secondary">
+            <a href="{{ route('predios.show', ['predio' => $rack->predio]) }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Voltar
             </a>
         </div>
@@ -24,7 +24,7 @@
                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <h2 class="h5 mb-0">Equipamentos</h2>
                         @can('user')
-                        <a href="/equipamentos/create?rack_id={{ $rack->id }}" class="btn btn-success btn-sm">
+                        <a href="{{ route('equipamentos.create', ['rack_id' => $rack->id]) }}" class="btn btn-success btn-sm">
                             <i class="fas fa-plus"></i> Novo 
                         </a> 
                         @endcan
@@ -50,13 +50,13 @@
                                         </td>
                                         <td>
                                             <div class="d-flex gap-2">
-                                                <a href="/equipamentos/{{ $equipamento->id }}" class="btn btn-info btn-sm">
+                                                <a href="{{ route('equipamentos.show', ['equipamento' => $equipamento]) }}" class="btn btn-info btn-sm">
                                                     Ver
                                                 </a>
-                                                <a href="/equipamentos/{{ $equipamento->id }}/edit" class="btn btn-warning btn-sm">
+                                                <a href="{{ route('equipamentos.edit', ['equipamento' => $equipamento]) }}" class="btn btn-warning btn-sm">
                                                     Editar
                                                 </a>
-                                                <form action="/equipamentos/{{ $equipamento->id }}" method="POST" class="d-inline">
+                                                <form action="{{ route('equipamentos.destroy', ['equipamento' => $equipamento]) }}" method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir este equipamento?')">
@@ -80,7 +80,7 @@
                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <h2 class="h5 mb-0">Patch Panels</h2>
                         @can('user')
-                        <a href="/patch-panels/create?rack_id={{ $rack->id }}" class="btn btn-success btn-sm">
+                        <a href="{{ route('patch-panels.create', ['rack_id' => $rack->id]) }}" class="btn btn-success btn-sm">
                             <i class="fas fa-plus"></i> Novo
                         </a>
                         @endcan
@@ -106,13 +106,13 @@
                                         </td>
                                         <td>
                                             <div class="d-flex gap-2">
-                                                <a href="/patch-panels/{{ $patchPanel->id }}" class="btn btn-info btn-sm">
+                                                <a href="{{ route('patch-panels.show', ['patchPanel' => $patchPanel]) }}" class="btn btn-info btn-sm">
                                                     Ver
                                                 </a>
-                                                <a href="/patch-panels/{{ $patchPanel->id }}/edit" class="btn btn-warning btn-sm">
+                                                <a href="{{ route('patch-panels.edit', ['patchPanel' => $patchPanel]) }}" class="btn btn-warning btn-sm">
                                                     Editar
                                                 </a>
-                                                <form action="/patch-panels/{{ $patchPanel->id }}" method="POST" class="d-inline">
+                                                <form action="{{ route('patch-panels.destroy', ['patchPanel' => $patchPanel]) }}" method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir este patch panel?')">

@@ -9,7 +9,7 @@
         </h1>
     </div>
     <div class="card-body">
-        <form action="/patch-panels/{{ $patchPanel->id }}/vincular-sala?porta={{ $porta }}" method="POST">
+        <form action="{{ route('patch-panels.vincular-sala', ['patchPanel' => $patchPanel, 'porta' => $porta]) }}" method="POST">
             @csrf
             <input type="hidden" name="sala_id" value="{{ $sala->id }}">
             <input type="hidden" name="porta" value="{{ $porta }}">
@@ -41,7 +41,7 @@
             
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">Vincular Porta</button>
-                <a href="/patch-panels/{{ $patchPanel->id }}/selecionar-sala?porta={{ $porta }}" class="btn btn-secondary">Voltar</a>
+                <a href="{{ route('patch-panels.selecionar-sala', ['patchPanel' => $patchPanel, 'porta' => $porta]) }}" class="btn btn-secondary">Voltar</a>
             </div>
         </form>
     </div>

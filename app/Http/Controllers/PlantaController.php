@@ -100,7 +100,7 @@ class PlantaController extends Controller
                 ->update(['visible' => true]);
         }
 
-        return redirect("/plantas/{$planta->predio_id}")
+        return redirect()->route('plantas.index', ['predio' => $planta->predio_id])
             ->with('success', 'Planta e permissões dos pontos atualizadas com sucesso!');
     }
 

@@ -10,7 +10,7 @@
         </div>
     </div>
     <div class="card-body">
-        <form action="/equipamentos" method="POST">
+        <form action="{{ route('equipamentos.store') }}" method="POST">
             @csrf
             
             <div class="mb-3">

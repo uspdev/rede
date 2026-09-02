@@ -8,7 +8,7 @@
             <h1 class="h4 mb-0 text-dark"> 
                 <i class="fas fa-building"></i> {{ $predio->nome }}
             </h1>
-            <a href="/" class="btn btn-secondary">
+            <a href="{{ route('home') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Voltar
             </a>
         </div>
@@ -25,19 +25,19 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span class="fw-bold text-secondary">{{ $planta->name }}</span>
                     <div>
-                        <a href="/plantas/public/{{$planta->id}}" class="btn btn-primary btn-sm">
+                        <a href="{{ route('plantas.public', ['planta' => $planta]) }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-edit"></i> Ver Planta
                         </a>
-                        <a href="/plantas/{{$planta->id}}/edit" class="btn btn-primary btn-sm">
+                        <a href="{{ route('plantas.edit', ['planta' => $planta]) }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-edit"></i> Editar Planta
                         </a>
-                        <a href="/salas/{{$planta->id}}/markers" class="btn btn-primary btn-sm">
+                        <a href="{{ route('salas.markers', ['planta' => $planta]) }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-edit"></i> Marcar Salas
                         </a>
-                        <a href="/plantas/{{$planta->id}}/mark" class="btn btn-primary btn-sm">
+                        <a href="{{ route('plantas.mark', ['planta' => $planta]) }}" class="btn btn-primary btn-sm">
                             <i class="fas fa-edit"></i> Marcar planta
                         </a>
-                        <form action="/plantas/{{$planta->predio_id}}/{{$planta->id}}" method="post" class="d-inline">
+                        <form action="{{ route('plantas.destroy', ['predio' => $planta->predio_id, 'planta' => $planta]) }}" method="post" class="d-inline">
                             @csrf
                             @method('delete')
                             <button type="submit" 
@@ -54,7 +54,7 @@
                     <div style="position: relative; width: 100%; display: block;">
                         
                         <!-- Imagem da Planta -->
-                        <img src="/plantas/{{$planta->predio_id}}/{{$planta->id}}" 
+                        <img src="{{ route('plantas.show', ['predio' => $planta->predio_id, 'planta' => $planta]) }}"
                              class="img-fluid rounded" 
                              style="width: 100%; height: auto; display: block;" 
                              alt="Planta Baixa">

@@ -6,7 +6,7 @@
         <h1>Editar Prédio: {{ $predio->nome }}</h1>
     </div>
     <div class="card-body">
-        <form action="/predios/{{ $predio->id }}" method="POST">
+        <form action="{{ route('predios.update', ['predio' => $predio]) }}" method="POST">
             @csrf
             @method('PUT')
             
@@ -22,7 +22,7 @@
             
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-success">Atualizar</button>
-                <a href="/" class="btn btn-secondary">Cancelar</a>
+                <a href="{{ route('home') }}" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
     </div>

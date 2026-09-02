@@ -6,7 +6,7 @@
         <h1>Cadastrar Novo Patch Panel</h1>
     </div>
     <div class="card-body">
-        <form action="/patch-panels" method="POST">
+        <form action="{{ route('patch-panels.store') }}" method="POST">
             @csrf
             
             <div class="mb-3">

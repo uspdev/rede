@@ -8,7 +8,7 @@
     <!-- Controles Superiores -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <!-- Botão Voltar -->
-        <a href="/plantas/{{ $planta->predio_id }}" style="text-decoration: none; color: #000; background-color: #f0f0f0; padding: 6px 12px; border-radius: 4px; font-size: 14px;">
+        <a href="{{ route('plantas.index', ['predio' => $planta->predio_id]) }}" style="text-decoration: none; color: #000; background-color: #f0f0f0; padding: 6px 12px; border-radius: 4px; font-size: 14px;">
             &larr; Voltar
         </a>
 
@@ -16,7 +16,7 @@
         <div style="display: flex; gap: 10px; align-items: center;">
             
             <!-- Botão Gerar PDF -->
-            <a href="/plantas/pdf/{{ $planta->id }}" target="_blank" style="text-decoration: none; color: #fff; background-color: #dc2626; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+            <a href="{{ route('plantas.pdf', ['planta' => $planta]) }}" target="_blank" style="text-decoration: none; color: #fff; background-color: #dc2626; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
                 📄 Exportar PDF
             </a>
 
@@ -38,7 +38,7 @@
         <div id="panzoom-target" style="position: relative; width: 100%; transform-origin: 0 0; cursor: grab;">
 
             <!-- Imagem SVG da Planta Baixa -->
-            <img id="svg-image" src="{{ '/plantas/' . $planta->predio_id . '/' . $planta->id }}" style="width: 100%; height: auto; display: block; user-select: none;" draggable="false" alt="{{ $planta->name }}">
+            <img id="svg-image" src="{{ route('plantas.show', ['predio' => $planta->predio_id, 'planta' => $planta]) }}" style="width: 100%; height: auto; display: block; user-select: none;" draggable="false" alt="{{ $planta->name }}">
 
             <!-- Renderização dos Marcadores Visíveis -->
             @include('plantas.partials.markers', ['markers' => $markers])
