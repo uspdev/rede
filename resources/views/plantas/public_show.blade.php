@@ -110,7 +110,7 @@
                                 <td colspan="4" class="fw-bold text-uppercase py-2 text-center">
                                     <i class="bi bi-door-closed me-1"></i> {{ $nomeSala }}
                                     @if($salaObj && !empty($salaObj->descricao))
-                                        <span class="text-muted fw-normal text-lowercase"> — {{ $salaObj->descricao }}</span>
+                                        <span class="text-muted fw-normal text-lowercase"> — {{ $salaObj->descricao }} - Quantidade de pontos na sala: <b>{{$pontosDaSala->count()}}</b></span>
                                     @endif
                                 </td>
                             </tr>
