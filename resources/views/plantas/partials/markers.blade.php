@@ -33,10 +33,12 @@
         }
     @endphp
 
-    <div class="marker-item marker-ponto" 
+    <!-- ALTERAÇÃO AQUI: Incluído 'ponto-marker' na class e 'data-tipo-id' -->
+    <div class="marker-item marker-ponto ponto-marker" 
          data-id="{{ $marker->id }}" 
          data-nome="{{ $nomeFormatado }}"
          data-tipo="{{ $marker->tipo_porta_id ?? '' }}"
+         data-tipo-id="{{ $marker->tipo_porta_id ?? 0 }}"
          data-comentario="{{ $marker->comentario ?? '' }}"
          data-tamanho="{{ $marker->tamanho ?? '' }}"
          data-fontsize="{{ $size }}"
