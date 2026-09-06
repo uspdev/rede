@@ -117,6 +117,8 @@
         <strong>Atenção:</strong> Acesse a versão em alta resolução e interativa desta planta em:
         <br>
         <a href="{{ $publicUrl }}" target="_blank">{{ $publicUrl }}</a>
+        <br>
+        Documento gerado em: {{ now()->format('d/m/Y H:i:s') }}
     </div>
 
     <!-- Tabela com Mapeamento ID -> Ponto -->
@@ -127,6 +129,7 @@
                 <th>Sala</th>
                 <th>Tipo</th>
                 <th class="text-end">Comprimento</th>
+                <th>Última atualização</th>
             </tr>
         </thead>
         <tbody>
@@ -157,6 +160,7 @@
                         <td class="text-end">
                             {{ $ponto->tamanho ? number_format($ponto->tamanho, 2, ',', '.') . ' m' : '-' }}
                         </td>
+                        <td>{{ $ponto->updated_at->format('d/m/Y H:i:s') }}</td>
                     </tr>
                 @endforeach
             @empty
@@ -174,6 +178,7 @@
                 <td class="text-end fw-bold">
                     {{ number_format($markers->sum('tamanho'), 2, ',', '.') }} m
                 </td>
+                <td></td>
             </tr>
         </tfoot>
     </table>

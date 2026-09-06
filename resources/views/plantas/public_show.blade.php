@@ -97,6 +97,7 @@
                             <th>Sala</th>
                             <th>Tipo</th>
                             <th>Comprimento</th>
+                            <th>Última atualização</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -107,7 +108,7 @@
                             @endphp
                             <!-- Cabeçalho da Sala -->
                             <tr class="table-secondary sala-header-row" data-sala-key="{{ $salaKey }}">
-                                <td colspan="4" class="fw-bold text-uppercase py-2 text-center">
+                                <td colspan="5" class="fw-bold text-uppercase py-2 text-center">
                                     <i class="bi bi-door-closed me-1"></i> {{ $nomeSala }}
                                     @if($salaObj && !empty($salaObj->descricao))
                                         <span class="text-muted fw-normal text-lowercase"> — {{ $salaObj->descricao }} - Quantidade de pontos na sala: <b>{{$pontosDaSala->count()}}</b></span>
@@ -131,11 +132,12 @@
                                         </span>
                                     </td>
                                     <td>{{ $ponto->tamanho ? number_format($ponto->tamanho, 2, ',', '.') . ' m' : '-' }}</td>
+                                    <td>{{ $ponto->updated_at->format('d/m/Y H:i:s') }}</td>
                                 </tr>
                             @endforeach
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center text-muted py-3">
+                                <td colspan="5" class="text-center text-muted py-3">
                                     Nenhum ponto visível nesta planta.
                                 </td>
                             </tr>
@@ -151,6 +153,7 @@
                             <td class="fw-bold fs-6" id="soma-comprimento-visivel">
                                 {{ number_format($markers->sum('tamanho'), 2, ',', '.') }} m
                             </td>
+                            <td></td>
                         </tr>
                     </tfoot>
                 </table>
