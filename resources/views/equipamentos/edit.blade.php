@@ -12,18 +12,18 @@
         @method('PUT')
         <div class="mb-3">
           <label class="form-label">Rack *</label>
-          <select name="rack_id" class="form-control @error('rack_id') is-invalid @enderror">
+          <select name="rack_id" class="form-control">
             @foreach($racks as $rack)
               <option value="{{ $rack->id }}" {{ old('rack_id', $equipamento->rack_id) == $rack->id ? 'selected' : '' }}>
                 {{ $rack->nome }} ({{ $rack->predio->nome }})
               </option>
             @endforeach
           </select>
-          @error('rack_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
         <div class="mb-3">
           <label class="form-label">Modelo *</label>
-          <select name="modelo_switch_id" id="modelo_switch_id" class="form-control @error('modelo_switch_id') is-invalid @enderror">
+          <select name="modelo_switch_id" id="modelo_switch_id" class="form-control">
+            <option value="">Selecione um modelo</option>
             @foreach($modelos->groupBy('fabricante') as $fab => $lista)
               <optgroup label="{{ $fab }}">
                 @foreach($lista as $m)
@@ -34,18 +34,15 @@
               </optgroup>
             @endforeach
           </select>
-          @error('modelo_switch_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           <div id="info-modelo" class="form-text text-muted"></div>
         </div>
         <div class="mb-3">
           <label class="form-label">Hostname *</label>
-          <input type="text" name="hostname" class="form-control @error('hostname') is-invalid @enderror" value="{{ old('hostname', $equipamento->hostname) }}">
-          @error('hostname')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          <input type="text" name="hostname" class="form-control" value="{{ old('hostname', $equipamento->hostname) }}">
         </div>
         <div class="mb-3">
           <label class="form-label">IP *</label>
-          <input type="text" name="ip" class="form-control @error('ip') is-invalid @enderror" value="{{ old('ip', $equipamento->ip) }}">
-          @error('ip')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          <input type="text" name="ip" class="form-control" value="{{ old('ip', $equipamento->ip) }}">
         </div>
         <div class="mb-3">
           <label class="form-label">Comentário</label>

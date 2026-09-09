@@ -11,7 +11,7 @@
       <div class="col-md-3">
         <div class="mb-3">
           <label class="form-label">Rack *</label>
-          <select name="rack_id" class="form-control @error('rack_id') is-invalid @enderror">
+          <select name="rack_id" class="form-control">
             <option value="">Selecione um rack</option>
             @foreach($racks as $rack)
               <option value="{{ $rack->id }}" {{ (old('rack_id') ?? $rack_selecionado ?? '') == $rack->id ? 'selected' : '' }}>
@@ -19,11 +19,10 @@
               </option>
             @endforeach
           </select>
-          @error('rack_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
         <div class="mb-3">
           <label class="form-label">Modelo *</label>
-          <select name="modelo_switch_id" id="modelo_switch_id" class="form-control @error('modelo_switch_id') is-invalid @enderror">
+          <select name="modelo_switch_id" id="modelo_switch_id" class="form-control">
             <option value="">Selecione um modelo</option>
             @foreach($modelos->groupBy('fabricante') as $fab => $lista)
               <optgroup label="{{ $fab }}">
@@ -35,18 +34,15 @@
               </optgroup>
             @endforeach
           </select>
-          @error('modelo_switch_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
           <div id="info-modelo" class="form-text text-muted"></div>
         </div>
         <div class="mb-3">
           <label class="form-label">Hostname *</label>
-          <input type="text" name="hostname" class="form-control @error('hostname') is-invalid @enderror" value="{{ old('hostname') }}" placeholder="Patrimônio">
-          @error('hostname')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          <input type="text" name="hostname" class="form-control" value="{{ old('hostname') }}" placeholder="Patrimônio">
         </div>
         <div class="mb-3">
           <label class="form-label">IP *</label>
-          <input type="text" name="ip" class="form-control @error('ip') is-invalid @enderror" value="{{ old('ip') }}" placeholder="Ex: 192.168.1.10">
-          @error('ip')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          <input type="text" name="ip" class="form-control" value="{{ old('ip') }}" placeholder="Ex: 192.168.1.10">
         </div>
         <div class="mb-3">
           <label class="form-label">Comentário</label>

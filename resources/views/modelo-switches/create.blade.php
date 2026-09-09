@@ -11,18 +11,15 @@
       <div class="col-md-3">
         <div class="mb-3">
           <label class="form-label">Fabricante *</label>
-          <input type="text" name="fabricante" class="form-control @error('fabricante') is-invalid @enderror" value="{{ old('fabricante') }}" placeholder="Ex: HP, Cisco, Aruba">
-          @error('fabricante')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          <input type="text" name="fabricante" class="form-control" value="{{ old('fabricante') }}" placeholder="Ex: HP, Cisco, Aruba">
         </div>
         <div class="mb-3">
           <label class="form-label">Nome/Modelo *</label>
-          <input type="text" name="nome" class="form-control @error('nome') is-invalid @enderror" value="{{ old('nome') }}" placeholder="Ex: 1920S 24G">
-          @error('nome')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          <input type="text" name="nome" class="form-control" value="{{ old('nome') }}" placeholder="Ex: 1920S 24G">
         </div>
         <div class="mb-3">
           <label class="form-label">Quantidade de Portas *</label>
-          <input type="number" name="qtde_portas" class="form-control @error('qtde_portas') is-invalid @enderror" value="{{ old('qtde_portas') }}" min="1">
-          @error('qtde_portas')<div class="invalid-feedback">{{ $message }}</div>@enderror
+          <input type="number" name="qtde_portas" class="form-control" value="{{ old('qtde_portas') }}" min="1">
         </div>
         <div class="mb-3 form-check">
           <input class="form-check-input" type="checkbox" value="1" name="poe" id="poe" @checked(old('poe'))>

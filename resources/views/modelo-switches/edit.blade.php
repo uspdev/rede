@@ -12,18 +12,15 @@
         <div class="col-md-3">
           <div class="mb-3">
             <label class="form-label">Fabricante *</label>
-            <input type="text" name="fabricante" class="form-control @error('fabricante') is-invalid @enderror" value="{{ old('fabricante', $modelo->fabricante) }}">
-            @error('fabricante')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <input type="text" name="fabricante" class="form-control" value="{{ old('fabricante', $modelo->fabricante) }}">
           </div>
           <div class="mb-3">
             <label class="form-label">Nome/Modelo *</label>
-            <input type="text" name="nome" class="form-control @error('nome') is-invalid @enderror" value="{{ old('nome', $modelo->nome) }}">
-            @error('nome')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <input type="text" name="nome" class="form-control" value="{{ old('nome', $modelo->nome) }}">
           </div>
           <div class="mb-3">
             <label class="form-label">Quantidade de Portas *</label>
-            <input type="number" name="qtde_portas" class="form-control @error('qtde_portas') is-invalid @enderror" value="{{ old('qtde_portas', $modelo->qtde_portas) }}" min="1">
-            @error('qtde_portas')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <input type="number" name="qtde_portas" class="form-control" value="{{ old('qtde_portas', $modelo->qtde_portas) }}" min="1">
           </div>
           <div class="mb-3 form-check">
             <input type="hidden" name="poe" value="0" />
