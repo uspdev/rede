@@ -114,20 +114,22 @@
 
     <!-- Aviso com Link Público -->
     <div class="public-link-box">
-        <strong>Atenção:</strong> Acesse a versão interativa e detalhada desta planta em:
+        <strong>Atenção:</strong> Acesse a versão em alta resolução e interativa desta planta em:
         <br>
         <a href="{{ $publicUrl }}" target="_blank">{{ $publicUrl }}</a>
+        <br>
+        Documento gerado em: {{ now()->format('d/m/Y H:i:s') }}
     </div>
 
     <!-- Tabela com Mapeamento ID -> Ponto -->
     <table>
         <thead>
             <tr>
-                <th style="width: 40px;" class="text-center">ID</th>
                 <th>Ponto (Rack - Patch - Porta)</th>
                 <th>Sala</th>
                 <th>Tipo</th>
                 <th class="text-end">Comprimento</th>
+                <th>Última atualização</th>
             </tr>
         </thead>
         <tbody>
@@ -137,7 +139,7 @@
                         {{ $nomeSala }}
                         @php $salaObj = $pontosDaSala->first()?->sala; @endphp
                         @if($salaObj && !empty($salaObj->descricao))
-                            <span style="font-weight: normal; font-size: 10px; text-transform: none;"> — {{ $salaObj->descricao }}</span>
+                            <span style="font-weight: normal; font-size: 10px; text-transform: none;"> — {{ $salaObj->descricao }} - Quantidade de pontos na sala: <b>{{$pontosDaSala->count()}}</b></span>
                         @endif
                     </td>
                 </tr>
@@ -148,7 +150,6 @@
                         $corTipo = optional($ponto->tipoPorta)->cor ?? '#ef4444';
                     @endphp
                     <tr>
-                        <td class="text-center fw-bold">{{ $ponto->id }}</td>
                         <td class="fw-bold">{{ $nomePonto }}</td>
                         <td>{{ optional($ponto->sala)->nome ?? '-' }}</td>
                         <td>
@@ -159,6 +160,7 @@
                         <td class="text-end">
                             {{ $ponto->tamanho ? number_format($ponto->tamanho, 2, ',', '.') . ' m' : '-' }}
                         </td>
+                        <td>{{ $ponto->updated_at->format('d/m/Y H:i:s') }}</td>
                     </tr>
                 @endforeach
             @empty
@@ -169,13 +171,14 @@
         </tbody>
         <tfoot>
             <tr style="background-color: #333; color: #fff;">
-                <td colspan="2" class="fw-bold">
+                <td class="fw-bold">
                     Total de Pontos: {{ $markers->count() }}
                 </td>
                 <td colspan="2" class="text-end fw-bold">Comprimento Total da Planta:</td>
                 <td class="text-end fw-bold">
                     {{ number_format($markers->sum('tamanho'), 2, ',', '.') }} m
                 </td>
+                <td></td>
             </tr>
         </tfoot>
     </table>
