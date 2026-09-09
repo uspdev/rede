@@ -3,37 +3,25 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request\EquipamentoRequest;
 use App\Models\Equipamento;
 
 class EquipamentoController extends Controller
 {
-    public function store(Request $request)
+    public function store(EquipamentoRequest $request)
     {
         // Verificar autorização
         if($request->header('Authorization') != env('AUTHORIZATION_KEY')){
             return response()->json(['error' => 'Unauthorized action.'], 403);
         }
 
-        // Validação dos campos
-        $validated = $request->validate([
-            'hostname' => 'required',
-            'model' => 'required',
-            'ip' => 'required|ip',
-            'qtde_portas' => 'required|integer|min:1|max:48',
-            'rack_id' => 'required|exists:racks,id',
-            'user_id' => 'required|exists:users,id',
-            'poe_type' => 'boolean'
-        ]);
+        $validated['ordem'] = Equipamento::where('rack_id', $validated['rack_id'])->max('ordem') + 1;
 
-        $equipamento = Equipamento::updateOrCreate(
-            ['hostname' => $validated['hostname']],
-            $validated
-        );
+        $equipamento = Equipamento::updateOrCreate($validated);
 
         return response()->json([
             'message' => 'Equipamento criado/atualizado com sucesso',
-            'equipamento' => $equipamento
+            'equipamento' => $equipamento->load('modeloSwitch')
         ], 201);
     }
 }

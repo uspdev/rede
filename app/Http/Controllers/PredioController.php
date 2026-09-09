@@ -35,8 +35,8 @@ class PredioController extends Controller
         Gate::authorize('admin');
         return view('predios.show', [
             'predio' => $predio,
-            'racks' => $predio->racks,
-            'salas' => $predio->salas,
+            'racks' => $predio->racks()->orderBy('nome')->get(),
+            'salas' => $predio->salas()->orderBy('nome')->get(),
         ]);
     }
 
@@ -58,7 +58,7 @@ class PredioController extends Controller
     {
         Gate::authorize('admin');
 
-        foreach($predio->plantas as $planta) {
+        if ($predio->plantas->count()) {
             session()->flash('alert-danger', 'Prédio não deletado, pois possui plantas cadastradas!');
             return back();
         }

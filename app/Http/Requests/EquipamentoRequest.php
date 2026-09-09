@@ -14,6 +14,18 @@ class EquipamentoRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        // Verifica se a requisição NÃO é da API (ou seja, é Web)
+        // Se for API, o campo 'usuario_id' já precisa vir no JSON enviado pelo cliente.
+        if ( !$this->is('api/*') ) {
+            // Se for Web, pegamos o usuário logado e injetamos no request
+            $this->merge([
+                'user_id' => auth()->id(),
+            ]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -25,11 +37,11 @@ class EquipamentoRequest extends FormRequest
 
         $rules = [
             'hostname' => 'required|string|max:255|unique:equipamentos,hostname,' . $equipamentoId,
-            'model' => 'required|string|max:255',
             'ip' => 'required|ip',
-            'qtde_portas' => 'required|integer|min:1|max:48',
             'rack_id' => 'required|exists:racks,id',
-            'poe_type' => 'boolean'
+            'modelo_switch_id' => 'required|exists:modelo_switches,id',
+            'comentario' => 'nullable|string',
+            'user_id' => 'required|exists:users,id',
         ];
 
         return $rules;
@@ -39,19 +51,13 @@ class EquipamentoRequest extends FormRequest
     {
         return [
             'hostname.required' => 'O hostname é obrigatório',
-            'hostname.max' => 'O hostname não pode ter mais que 255 caracteres',
             'hostname.unique' => 'Já existe um equipamento com este hostname',
-            'model.required' => 'O modelo é obrigatório',
-            'model.max' => 'O modelo não pode ter mais que 255 caracteres',
             'ip.required' => 'O IP é obrigatório',
             'ip.ip' => 'Informe um IP válido',
-            'qtde_portas.required' => 'A quantidade de portas é obrigatória',
-            'qtde_portas.integer' => 'A quantidade de portas deve ser um número inteiro',
-            'qtde_portas.min' => 'A quantidade de portas deve ser pelo menos 1',
-            'qtde_portas.max' => 'A quantidade de portas não pode ser maior que 48',
             'rack_id.required' => 'Selecione um rack',
-            'rack_id.exists' => 'Rack selecionado é inválido',
-            'poe_type.boolean' => 'O campo PoE deve ser verdadeiro ou falso'
+            'modelo_switch_id.required' => 'Selecione um modelo de switch',
+            'tipo.required' => 'Selecione o tipo do equipamento',
+            'tipo.in' => 'Tipo inválido',
         ];
     }
 }

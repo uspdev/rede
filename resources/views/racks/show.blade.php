@@ -25,8 +25,8 @@
                         <h2 class="h5 mb-0">Equipamentos</h2>
                         @can('user')
                         <a href="/equipamentos/create?rack_id={{ $rack->id }}" class="btn btn-success btn-sm">
-                            <i class="fas fa-plus"></i> Novo 
-                        </a> 
+                            <i class="fas fa-plus"></i> Novo
+                        </a>
                         @endcan
                     </div>
                     <div class="card-body">
@@ -37,16 +37,20 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
+                                        <th style="width: 30px;"></th>
                                         <th>Hostname / Modelo</th>
                                         <th width="180px">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tbody-equipamentos" data-rack-id="{{ $rack->id }}">
                                     @foreach($rack->equipamentos as $equipamento)
-                                    <tr>
+                                    <tr data-id="{{ $equipamento->id }}">
+                                        <td class="align-middle" style="cursor: grab;">
+                                            <i class="fas fa-grip-vertical text-muted"></i>
+                                        </td>
                                         <td>
                                             <strong>{{ $equipamento->hostname }}</strong><br>
-                                            <small class="text-muted">{{ $equipamento->model }}</small>
+                                            <small class="text-muted">{{ $equipamento->modeloSwitch?->nome ?? 'Sem modelo' }}</small><br>
                                         </td>
                                         <td>
                                             <div class="d-flex gap-2">
@@ -93,13 +97,17 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
+                                        <th style="width: 30px;"></th>
                                         <th>Identificação / Portas</th>
                                         <th width="180px">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tbody-patchpanels" data-rack-id="{{ $rack->id }}">
                                     @foreach($rack->patchPanels as $patchPanel)
-                                    <tr>
+                                    <tr data-id="{{ $patchPanel->id }}">
+                                        <td class="align-middle" style="cursor: grab;">
+                                            <i class="fas fa-grip-vertical text-muted"></i>
+                                        </td>
                                         <td>
                                             <strong>{{ $patchPanel->nome }}</strong><br>
                                             <small class="text-muted">{{ $patchPanel->qtde_portas }} portas</small>
@@ -158,4 +166,59 @@
     </div>
 </div>
 
+@endsection
+
+@section('javascripts_bottom')
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+function initTableSortable(tbodyId, tipo) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody || tbody.children.length === 0) return;
+
+    const rackId = tbody.getAttribute('data-rack-id');
+
+    new Sortable(tbody, {
+        handle: 'td:first-child',
+        animation: 150,
+        ghostClass: 'table-active',
+        onEnd: function() {
+            const itens = [];
+            tbody.querySelectorAll('tr[data-id]').forEach((row, index) => {
+                itens.push({
+                    tipo: tipo,
+                    id: row.getAttribute('data-id'),
+                    ordem: index + 1
+                });
+            });
+
+            fetch('/racks/' + rackId + '/reordenar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ itens: itens })
+            })
+            .then(r => {
+                if (!r.ok) throw new Error('Erro ao salvar');
+                return r.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                }
+            })
+            .catch(err => {
+                alert('Erro ao reordenar: ' + err.message);
+                window.location.reload();
+            });
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initTableSortable('tbody-equipamentos', 'equipamento');
+    initTableSortable('tbody-patchpanels', 'patchpanel');
+});
+</script>
 @endsection
