@@ -39,7 +39,7 @@ class CriarEquipamentoTest extends DuskTestCase
             $browser->select('modelo_switch_id', '1')
                 ->type('hostname', 'SW-TESTE-01')
                 ->type('ip', '192.168.1.100')
-                ->select('tipo', 'A')
+                ->type('comentario', 'wwcc')
                 ->waitFor('button[type="submit"]', 5)
                 ->press('Salvar');
 

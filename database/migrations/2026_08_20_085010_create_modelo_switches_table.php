@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nome');
             $table->string('fabricante');
             $table->integer('qtde_portas');
-            $table->integer('qtde_portas_poe')->default(0);
+            $table->boolean('poe')->default(false);
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });

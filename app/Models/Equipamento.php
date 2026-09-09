@@ -15,7 +15,7 @@ class Equipamento extends Model
         'rack_id',
         'modelo_switch_id',
         'user_id',
-        'tipo',
+        /* 'tipo', */
         'ordem',
         'comentario',
     ];
@@ -45,35 +45,4 @@ class Equipamento extends Model
         return $this->modeloSwitch?->qtde_portas ?? 0;
     }
 
-    public function getQtdePortasPoeAttribute()
-    {
-        return $this->modeloSwitch?->qtde_portas_poe ?? 0;
-    }
-
-    public function getPoeTypeAttribute()
-    {
-        return ($this->modeloSwitch?->qtde_portas_poe ?? 0) > 0;
-    }
-
-    public function getTipoLabelAttribute(): string
-    {
-        return match($this->tipo) {
-            'A' => 'Acesso',
-            'W' => 'Wireless',
-            'C' => 'Câmera',
-            'V' => 'VoIP',
-            default => 'Desconhecido',
-        };
-    }
-
-    public function getCorTipoAttribute(): string
-    {
-        return match($this->tipo) {
-            'A' => 'primary',
-            'W' => 'info',
-            'C' => 'danger',
-            'V' => 'success',
-            default => 'secondary',
-        };
-    }
 }

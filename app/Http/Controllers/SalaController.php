@@ -5,11 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Sala;
 use App\Models\Predio;
-use App\Models\PatchPanel;
-use App\Models\Rack;
 use App\Models\Planta;
 use App\Http\Requests\SalaRequest;
-use App\Http\Requests\VincularPortaSalaRequest;
 use Illuminate\Support\Facades\Gate;
 
 class SalaController extends Controller

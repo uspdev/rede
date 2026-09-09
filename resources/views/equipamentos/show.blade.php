@@ -5,7 +5,6 @@
     <div class="card-header bg-usp d-flex justify-content-between align-items-center">
         <span class="h4 mb-0 text-dark">
             <i class="fas fa-network-wired"></i> {{ $equipamento->hostname }}
-            <span class="badge bg-{{ $equipamento->cor_tipo }}">{{ $equipamento->tipo_label }}</span>
         </span>
         <a href="/racks/{{ $equipamento->rack_id }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Voltar</a>
     </div>
@@ -18,8 +17,7 @@
                     <li class="list-group-item"><strong>Modelo:</strong> {{ $equipamento->modeloSwitch?->nome ?? '-' }}</li>
                     <li class="list-group-item"><strong>Fabricante:</strong> {{ $equipamento->modeloSwitch?->fabricante ?? '-' }}</li>
                     <li class="list-group-item"><strong>Portas:</strong> {{ $equipamento->qtde_portas }}</li>
-                    <li class="list-group-item"><strong>Portas PoE:</strong> {{ $equipamento->qtde_portas_poe > 0 ? $equipamento->qtde_portas_poe : 'Não' }}</li>
-                    <li class="list-group-item"><strong>Tipo:</strong> {{ $equipamento->tipo_label }}</li>
+                    <li class="list-group-item"><strong>PoE:</strong> {{ $equipamento->modeloSwitch?->poe ? 'Sim' : 'Não' }}</li>
                     <li class="list-group-item"><strong>Rack:</strong> {{ $equipamento->rack->nome }} ({{ $equipamento->rack->predio->nome }})</li>
                     @if($equipamento->comentario)
                         <li class="list-group-item"><strong>Comentário:</strong> {{ $equipamento->comentario }}</li>

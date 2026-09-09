@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Equipamento;
 use App\Models\ModeloSwitch;
-use App\Models\Predio;
 use App\Models\Rack;
 use App\Http\Requests\EquipamentoRequest;
 use Illuminate\Http\Request;
@@ -27,11 +26,11 @@ class EquipamentoController extends Controller
     {
         Gate::authorize('admin');
 
-        $data = $request->validated();
-        $data['user_id'] = auth()->id();
-        $data['ordem'] = Equipamento::where('rack_id', $request->rack_id)->max('ordem') + 1;
+        $validated = $request->validated();
 
-        $equipamento = Equipamento::create($data);
+        $validated['ordem'] = Equipamento::where('rack_id', $request->rack_id)->max('ordem') + 1;
+
+        $equipamento = Equipamento::create($validated);
 
         session()->flash('alert-success', 'Equipamento criado com sucesso!');
         return redirect("/racks/{$equipamento->rack_id}");
@@ -58,10 +57,10 @@ class EquipamentoController extends Controller
     {
         Gate::authorize('admin');
 
-        $equipamento->update($request->validated() + ['user_id' => auth()->id()]);
+        $equipamento->update($request->validated());
 
         session()->flash('alert-success', 'Equipamento atualizado com sucesso!');
-        return redirect("/equipamentos/{$equipamento->id}");
+        return redirect("/racks/{$equipamento->rack_id}");
     }
 
     public function destroy(Equipamento $equipamento)

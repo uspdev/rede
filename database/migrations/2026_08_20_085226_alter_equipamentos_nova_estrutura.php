@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::table('equipamentos', function (Blueprint $table) {
             $table->foreignId('modelo_switch_id')->after('rack_id')->constrained('modelo_switches');
-            $table->enum('tipo', ['A', 'W', 'C', 'V'])->after('modelo_switch_id')->default('A');
-            $table->integer('ordem')->after('tipo')->default(0);
+            $table->integer('ordem')->default(0);
             $table->text('comentario')->nullable()->after('ordem');
 
             $table->dropColumn(['model', 'qtde_portas', 'poe_type']);

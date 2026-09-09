@@ -33,7 +33,7 @@ class CriarModeloSwitchTest extends DuskTestCase
             $browser->type('nome', 'Switch Teste 24G')
                 ->type('fabricante', 'HP')
                 ->type('qtde_portas', '24')
-                ->type('qtde_portas_poe', '12')
+                ->check('poe')
                 ->waitFor('button[type="submit"]', 5)
                 ->press('Salvar');
 

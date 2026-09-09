@@ -26,7 +26,7 @@ class ModeloSwitchRequest extends FormRequest
             'nome' => 'required|string|max:255',
             'fabricante' => 'required|string|max:255',
             'qtde_portas' => 'required|integer|min:1|max:96',
-            'qtde_portas_poe' => 'nullable|integer|min:0|max:96',
+            'poe' => 'nullable|boolean',
         ];
     }
 
@@ -36,6 +36,7 @@ class ModeloSwitchRequest extends FormRequest
             'nome.required' => 'O nome do modelo é obrigatório',
             'fabricante.required' => 'O fabricante é obrigatório',
             'qtde_portas.required' => 'A quantidade de portas é obrigatória',
+            'poe' => 'O PoE dever ser true ou false',
         ];
     }
 }

@@ -72,7 +72,7 @@ class RackController extends Controller
         } else {
             session()->flash('alert-danger', 'Não foi possível deletar, pois existem patch panels cadastrados neste rack');
         }
-        return redirect()->back();
+        return back();
     }
 
     public function reordenar(Rack $rack, Request $request)

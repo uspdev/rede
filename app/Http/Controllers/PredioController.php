@@ -58,7 +58,7 @@ class PredioController extends Controller
     {
         Gate::authorize('admin');
 
-        foreach($predio->plantas as $planta) {
+        if ($predio->plantas->count()) {
             session()->flash('alert-danger', 'Prédio não deletado, pois possui plantas cadastradas!');
             return back();
         }

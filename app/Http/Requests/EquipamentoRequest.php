@@ -14,6 +14,18 @@ class EquipamentoRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        // Verifica se a requisição NÃO é da API (ou seja, é Web)
+        // Se for API, o campo 'usuario_id' já precisa vir no JSON enviado pelo cliente.
+        if ( !$this->is('api/*') ) {
+            // Se for Web, pegamos o usuário logado e injetamos no request
+            $this->merge([
+                'user_id' => auth()->id(),
+            ]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -28,9 +40,8 @@ class EquipamentoRequest extends FormRequest
             'ip' => 'required|ip',
             'rack_id' => 'required|exists:racks,id',
             'modelo_switch_id' => 'required|exists:modelo_switches,id',
-            'tipo' => 'required|in:A,W,C,V',
-            'ordem' => 'nullable|integer|min:0',
             'comentario' => 'nullable|string',
+            'user_id' => 'required|exists:users,id',
         ];
 
         return $rules;

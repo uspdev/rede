@@ -6,11 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class ModeloSwitch extends Model
 {
+
+    protected $casts = [
+        'poe' => 'boolean',
+    ];
+
     protected $fillable = [
         'nome',
         'fabricante',
         'qtde_portas',
-        'qtde_portas_poe',
+        'poe',
         'user_id',
     ];
 
