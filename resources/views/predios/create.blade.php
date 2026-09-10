@@ -6,7 +6,7 @@
         <h1>Cadastrar Novo Prédio</h1>
     </div>
     <div class="card-body">
-        <form action="/predios" method="POST">
+        <form action="{{ route('predios.store') }}" method="POST">
             @csrf
             
             <div class="mb-3">
@@ -21,7 +21,7 @@
             
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-success">Salvar</button>
-                <a href="/" class="btn btn-secondary">Cancelar</a>
+                <a href="{{ route('home') }}" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
     </div>

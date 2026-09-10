@@ -3,7 +3,7 @@
         <h5 class="card-title mb-0">Adicionar Nova Planta Baixa</h5>
     </div>
     <div class="card-body">
-        <form method="post" enctype="multipart/form-data" action="/plantas/{{ $predio->id }}">
+        <form method="post" enctype="multipart/form-data" action="{{ route('plantas.store', ['predio' => $predio]) }}">
             @csrf
             <input type="hidden" name="predio_id" value="{{ $predio->id }}">
 

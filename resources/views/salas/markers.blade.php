@@ -5,7 +5,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-    <a href="/plantas/{{ $planta->predio_id }}" style="text-decoration: none; color: #000; background-color: #f0f0f0; padding: 6px 12px; border-radius: 4px; font-size: 14px;">
+    <a href="{{ route('plantas.index', ['predio' => $planta->predio_id]) }}" style="text-decoration: none; color: #000; background-color: #f0f0f0; padding: 6px 12px; border-radius: 4px; font-size: 14px;">
         &larr; Voltar
     </a>
 
@@ -112,7 +112,9 @@
         const salaId = salaSelect.value;
 
         if (salaId) {
-            mainForm.action = `/salas/${salaId}/${plantaId}/mark`;
+            mainForm.action = @json(route('salas.mark', ['sala' => '__SALA__', 'planta' => '__PLANTA__']))
+                .replace('__SALA__', salaId)
+                .replace('__PLANTA__', plantaId);
             inputDescricao.value = selectedOption.dataset.descricao || "";
         } else {
             mainForm.action = "";
@@ -263,14 +265,17 @@
                         salaSelect.required = false;
 
                         // Preenche os campos do formulário principal para atualização
-                        mainForm.action = `/salas/${salaId}/${plantaId}/mark`;
+                        mainForm.action = @json(route('salas.mark', ['sala' => '__SALA__', 'planta' => '__PLANTA__']))
+                            .replace('__SALA__', salaId)
+                            .replace('__PLANTA__', plantaId);
                         inputX.value = currentX;
                         inputY.value = currentY;
                         inputFontsize.value = salaFontsize;
                         inputDescricao.value = salaDescricao;
 
                         // Configura o formulário de deleção
-                        deleteForm.action = `/salas/${salaId}/unmark`;
+                        deleteForm.action = @json(route('salas.unmark', ['sala' => '__SALA__']))
+                            .replace('__SALA__', salaId);
 
                         mainForm.style.display = 'block';
                         deleteForm.style.display = 'block';

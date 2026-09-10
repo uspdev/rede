@@ -29,7 +29,7 @@ class SalaController extends Controller
         Sala::create($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Sala criada com sucesso!');
 
-        return redirect("/predios/{$request->predio_id}");
+        return redirect()->route('predios.show', ['predio' => $request->predio_id]);
     }
 
     public function show(Sala $sala)
@@ -67,7 +67,7 @@ class SalaController extends Controller
         $sala->update($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Sala atualizada com sucesso!');
 
-        return redirect("/salas/{$sala->id}");
+        return redirect()->route('salas.show', ['sala' => $sala]);
     }
 
     public function destroy(Sala $sala)

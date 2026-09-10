@@ -6,7 +6,7 @@
     <span class="h4 mb-0 text-dark"><i class="fas fa-network-wired"></i> Cadastrar Novo Equipamento</span>
   </div>
   <div class="card-body">
-    <form action="/equipamentos" method="POST">
+    <form action="{{ route('equipamentos.store') }}" method="POST">
       @csrf
       <div class="col-md-3">
         <div class="mb-3">

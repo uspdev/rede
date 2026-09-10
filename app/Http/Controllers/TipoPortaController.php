@@ -27,7 +27,7 @@ class TipoPortaController extends Controller
         Gate::authorize('admin');
         TipoPorta::create($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Tipo de porta criado com sucesso!');
-        return redirect('/tipo-portas');
+        return redirect()->route('tipo-portas.index');
     }
 
     public function show(TipoPorta $tipoPorta)
@@ -51,7 +51,7 @@ class TipoPortaController extends Controller
         Gate::authorize('admin');
         $tipoPorta->update($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Tipo de porta atualizado com sucesso!');
-        return redirect('/tipo-portas');
+        return redirect()->route('tipo-portas.index');
     }
 
     public function destroy(TipoPorta $tipoPorta)
@@ -64,6 +64,6 @@ class TipoPortaController extends Controller
         } else {
             session()->flash('alert-danger', 'Tipo de porta não pode ser removido, pois está em uso!');
         }
-        return redirect('/tipo-portas');
+        return redirect()->route('tipo-portas.index');
     }
 }

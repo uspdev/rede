@@ -33,7 +33,7 @@ class EquipamentoController extends Controller
         $equipamento = Equipamento::create($validated);
 
         session()->flash('alert-success', 'Equipamento criado com sucesso!');
-        return redirect("/racks/{$equipamento->rack_id}");
+        return redirect()->route('racks.show', ['rack' => $equipamento->rack_id]);
     }
 
     public function show(Equipamento $equipamento)
@@ -60,7 +60,7 @@ class EquipamentoController extends Controller
         $equipamento->update($request->validated());
 
         session()->flash('alert-success', 'Equipamento atualizado com sucesso!');
-        return redirect("/racks/{$equipamento->rack_id}");
+        return redirect()->route('equipamentos.show', ['equipamento' => $equipamento]);
     }
 
     public function destroy(Equipamento $equipamento)
@@ -71,6 +71,6 @@ class EquipamentoController extends Controller
         $equipamento->delete();
 
         session()->flash('alert-success', 'Equipamento removido com sucesso!');
-        return redirect("/racks/{$rack_id}");
+        return redirect()->route('racks.show', ['rack' => $rack_id]);
     }
 }
