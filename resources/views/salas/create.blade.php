@@ -6,7 +6,7 @@
         <h1>Cadastrar Novo Local ou Sala</h1>
     </div>
     <div class="card-body">
-        <form action="/salas" method="POST">
+        <form action="{{ route('salas.store') }}" method="POST">
             @csrf
 
             <div class="mb-3">

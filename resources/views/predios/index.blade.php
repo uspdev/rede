@@ -17,7 +17,7 @@
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
             @can('user')
-            <a href="/predios/create" class="btn btn-success ml-2">
+            <a href="{{ route('predios.create') }}" class="btn btn-success ml-2">
                 <i class="fas fa-plus"></i> Adicionar Novo Prédio
             </a>
             @endcan
@@ -43,9 +43,9 @@
                         <td>{{ $predio->nome }}</td>
                         <td>{{ $predio->descricao ?? '-' }}</td>
                         <td>
-                            <a href="/predios/{{ $predio->id }}" class="btn btn-info btn-sm">Ver</a>
-                            <a href="/predios/{{ $predio->id }}/edit" class="btn btn-warning btn-sm">Editar</a>
-                            <form action="/predios/{{ $predio->id }}" method="POST" class="d-inline">
+                            <a href="{{ route('predios.show', ['predio' => $predio]) }}" class="btn btn-info btn-sm">Ver</a>
+                            <a href="{{ route('predios.edit', ['predio' => $predio]) }}" class="btn btn-warning btn-sm">Editar</a>
+                            <form action="{{ route('predios.destroy', ['predio' => $predio]) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir este prédio?')">

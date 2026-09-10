@@ -6,7 +6,7 @@
         <h1>Editar Tipo de Porta: {{ $tipoPorta->nome }}</h1>
     </div>
     <div class="card-body">
-        <form action="/tipo-portas/{{ $tipoPorta->id }}" method="POST">
+        <form action="{{ route('tipo-portas.update', ['tipoPorta' => $tipoPorta]) }}" method="POST">
             @csrf
             @method('PUT')
             
@@ -47,7 +47,7 @@
             {{-- Ações --}}
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-primary">Atualizar</button>
-                <a href="/tipo-portas" class="btn btn-secondary">Cancelar</a>
+                <a href="{{ route('tipo-portas.index') }}" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
     </div>

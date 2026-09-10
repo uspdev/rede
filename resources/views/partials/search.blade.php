@@ -1,4 +1,4 @@
-<form method="get" action="/">
+<form method="get" action="{{ route('home') }}">
     <div class="row">
         <div class=" col-sm input-group">
         <input type="text" class="form-control" id="macaddress" name="search" placeholder="Buscar Mac Address..." value="{{ request()->search }}">

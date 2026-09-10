@@ -29,7 +29,7 @@ class PatchPanelController extends Controller
         Gate::authorize('admin');
         $patchPanel = PatchPanel::create($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Patch panel criado com sucesso!');
-        return redirect("/racks/{$patchPanel->rack_id}");
+        return redirect()->route('racks.show', ['rack' => $patchPanel->rack_id]);
     }
 
     public function show(PatchPanel $patchPanel)
@@ -67,7 +67,7 @@ class PatchPanelController extends Controller
         Gate::authorize('admin');
         $patchPanel->update($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Patch panel atualizado com sucesso!');
-        return redirect("/patch-panels/{$patchPanel->id}");
+        return redirect()->route('patch-panels.show', ['patchPanel' => $patchPanel]);
     }
 
     public function selecionarSala(PatchPanel $patchPanel, Request $request)
@@ -106,7 +106,7 @@ class PatchPanelController extends Controller
         // Verificar se a porta já está vinculada
         if ($patchPanel->salas()->wherePivot('porta', $porta)->exists()) {
             session()->flash('alert-danger', 'Esta porta já está vinculada!');
-            return redirect("/patch-panels/{$patchPanel->id}");
+            return redirect()->route('patch-panels.show', ['patchPanel' => $patchPanel]);
         }
 
         $dadosVinculo = [
@@ -120,7 +120,7 @@ class PatchPanelController extends Controller
         $patchPanel->salas()->attach($request->sala_id, $dadosVinculo);
         
         session()->flash('alert-success', 'Porta vinculada com sucesso!');
-        return redirect("/patch-panels/{$patchPanel->id}");
+        return redirect()->route('patch-panels.show', ['patchPanel' => $patchPanel]);
     }
 
     public function desvincularSala(PatchPanel $patchPanel, Sala $sala, Request $request)
@@ -130,7 +130,7 @@ class PatchPanelController extends Controller
 
         $patchPanel->salas()->wherePivot('porta', $porta)->detach($sala->id);
         session()->flash('alert-success', 'Porta desvinculada com sucesso!');
-        return redirect("/patch-panels/{$patchPanel->id}");
+        return redirect()->route('patch-panels.show', ['patchPanel' => $patchPanel]);
     }
 
     public function editarTipoPorta(PatchPanel $patchPanel, Sala $sala, Request $request)
@@ -146,7 +146,7 @@ class PatchPanelController extends Controller
 
         if (!$vinculo) {
             session()->flash('alert-danger', 'Vínculo não encontrado!');
-            return redirect("/patch-panels/{$patchPanel->id}");
+            return redirect()->route('patch-panels.show', ['patchPanel' => $patchPanel]);
         }
 
         return view('patch-panels.editar-tipo-porta', [
@@ -181,7 +181,7 @@ class PatchPanelController extends Controller
             ]);
 
         session()->flash('alert-success', 'Tipo de porta atualizado com sucesso!');
-        return redirect("/patch-panels/{$patchPanel->id}");
+        return redirect()->route('patch-panels.show', ['patchPanel' => $patchPanel]);
     }
 
     public function destroy(PatchPanel $patchPanel)

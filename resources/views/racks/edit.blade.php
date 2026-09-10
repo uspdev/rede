@@ -6,7 +6,7 @@
         <h1>Editar Rack: {{ $rack->nome }}</h1>
     </div>
     <div class="card-body">
-        <form action="/racks/{{ $rack->id }}" method="POST">
+        <form action="{{ route('racks.update', ['rack' => $rack]) }}" method="POST">
             @csrf
             @method('PUT')
             

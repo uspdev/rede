@@ -3,7 +3,7 @@
 @section('content')
 
 @can('user')
-@include('partials.search') 
+@include('partials.search')
 @endcan
 <br>
 
@@ -14,7 +14,7 @@
                 <i class="fas fa-door-open"></i> Local: {{ $sala->nome }}
                 <small class="text-muted d-block">{{ $sala->predio->nome }}</small>
             </h1>
-            <a href="/predios/{{ $sala->predio->id }}" class="btn btn-secondary">
+            <a href="{{ route('predios.show', ['predio' => $sala->predio]) }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Voltar
             </a>
         </div>
@@ -23,7 +23,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3>Portas Vinculadas Neste Local/Sala</h3>
         </div>
-        
+
         @if($patchPanels->isEmpty())
             <div class="alert alert-info">Nenhuma porta vinculada a esta sala.</div>
         @else
@@ -35,13 +35,13 @@
                             <th>Rack</th>
                             <th>Prédio</th>
                             <th>Porta</th>
-                            <th>Tipo de Porta</th> 
+                            <th>Tipo de Porta</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($patchPanels as $pp)
                         @php
-                            $tipoPorta = $pp->pivot->tipoPorta; 
+                            $tipoPorta = $pp->pivot->tipoPorta;
                         @endphp
                         <tr>
                             <td>{{ $pp->nome }}</td>
@@ -60,7 +60,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="d-flex justify-content-center">
                 {{ $patchPanels->links() }}
             </div>

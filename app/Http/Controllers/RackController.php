@@ -30,7 +30,7 @@ class RackController extends Controller
         Rack::create($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Rack criado com sucesso!');
 
-        return redirect("/predios/{$request->predio_id}");
+        return redirect()->route('predios.show', ['predio' => $request->predio_id]);
     }
 
     public function show(Rack $rack)
@@ -59,7 +59,7 @@ class RackController extends Controller
         $rack->update($request->validated() + ['user_id' => auth()->id()]);
         session()->flash('alert-success', 'Rack atualizado com sucesso!');
 
-        return redirect("/racks/{$rack->id}");
+        return redirect()->route('racks.show', ['rack' => $rack]);
     }
 
     public function destroy(Rack $rack)
