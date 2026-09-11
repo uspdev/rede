@@ -9,7 +9,7 @@ use Tests\DuskTestCase;
 class CriarPatchPanelTest extends DuskTestCase
 {
     /**
-     * Teste de criação de Patch Panel. 
+     * Teste de criação de Patch Panel.
      */
     public function test_criar_patch_panel(): void
     {
@@ -25,12 +25,12 @@ class CriarPatchPanelTest extends DuskTestCase
             $browser->clickLink('Prédios')
                 ->waitForLocation('/predios', 5)
                 ->clickLink('Ver')
-                ->waitFor('a[href="/racks/1"]', 5)
-                ->click('a[href="/racks/1"]')
+                ->waitFor('a[href="http://rede/racks/1"]')
+                ->click('a[href="http://rede/racks/1"]')
                 ->waitForLocation('/racks/1', 5);
 
             // Clica em novo patch panel
-            $browser->click('a[href="/patch-panels/create?rack_id=1"]')
+            $browser->click('a[href="http://rede/patch-panels/create?rack_id=1"]')
                 ->waitForLocation('/patch-panels/create', 5);
 
             // Preenche e salva

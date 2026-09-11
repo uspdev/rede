@@ -24,7 +24,7 @@ class CriarSalaTest extends DuskTestCase
             $browser->clickLink('Prédios')
                 ->waitForLocation('/predios', 5)
                 ->clickLink('Ver')
-                ->waitFor('a[href="/salas/create?predio_id=1"]', 5);
+                ->waitForText('Novo Local/Sala');
 
             // Clica no link para criar nova sala
             $browser->clickLink('Novo Local/Sala')

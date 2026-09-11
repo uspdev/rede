@@ -27,12 +27,12 @@ class CriarEquipamentoTest extends DuskTestCase
                 ->clickLink('Ver');
 
             // Entra no primeiro rack
-            $browser->waitFor('a[href="/racks/1"]', 5)
-                ->click('a[href="/racks/1"]')
+            $browser->waitFor('a[href="http://rede/racks/1"]', 5)
+                ->click('a[href="http://rede/racks/1"]')
                 ->waitForLocation('/racks/1', 5);
 
             // Clica no botão "Novo" dos equipamentos
-            $browser->click('a[href="/equipamentos/create?rack_id=1"]')
+            $browser->click('a[href="http://rede/equipamentos/create?rack_id=1"]')
                 ->waitForLocation('/equipamentos/create', 5);
 
             // Preenche formulário

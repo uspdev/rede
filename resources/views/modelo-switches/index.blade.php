@@ -24,7 +24,7 @@
                         <td><strong>{{ $modelo->fabricante }}</strong></td>
                         <td>{{ $modelo->nome }}</td>
                         <td>{{ $modelo->qtde_portas }}</td>
-                        <td>{{ $modelo->qtde_portas_poe > 0 ? $modelo->qtde_portas_poe : '-' }}</td>
+                        <td>{!! $modelo->poe ? '<i class="fa fa-check" aria-hidden="true"></i>' : '' !!}</td>
                         <td>
                             <a href="/modelo-switches/{{ $modelo->id }}/edit" class="btn btn-warning btn-sm">Editar</a>
                             <form action="/modelo-switches/{{ $modelo->id }}" method="POST" class="d-inline">

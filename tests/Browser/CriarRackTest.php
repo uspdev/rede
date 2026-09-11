@@ -24,7 +24,7 @@ class CriarRackTest extends DuskTestCase
             $browser->clickLink('Prédios')
                 ->waitForLocation('/predios', 5)
                 ->clickLink('Ver')
-                ->waitFor('a[href="/racks/create?predio_id=1"]', 5);
+                ->waitForText('Novo Rack');
 
             // Clica no link para criar novo rack
             $browser->clickLink('Novo Rack')
