@@ -10,8 +10,6 @@ COPY --chown=www-data . .
 RUN composer install \
     --no-dev \
     --optimize-autoloader \
-    --no-interaction \
-    --no-scripts && \
-    composer dump-autoload --optimize --no-scripts
+    --no-interaction
 
 CMD ["apache2-foreground"]
