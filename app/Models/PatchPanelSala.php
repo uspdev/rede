@@ -8,6 +8,9 @@ class PatchPanelSala extends Pivot
 {
     protected $table = 'patch_panel_sala';
 
+    // A tabela tem id autoincremento; sem isto, Pivot::create() não devolve o id gerado
+    public $incrementing = true;
+
     protected $fillable = [
         'patch_panel_id',
         'sala_id',
@@ -21,7 +24,9 @@ class PatchPanelSala extends Pivot
         'planta_id',
         'fontsize',
         'label_position',
-        'visible'
+        'visible',
+        'label_dx',
+        'label_dy',
     ];
 
     protected $casts = [

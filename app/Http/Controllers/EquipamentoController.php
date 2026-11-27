@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Equipamento;
 use App\Models\ModeloSwitch;
 use App\Models\PatchPanelSala;
+use App\Models\Snapshot;
+use App\Models\Mac;
+use Illuminate\Support\Facades\DB;
 use App\Models\Rack;
 use App\Http\Requests\EquipamentoRequest;
 use Illuminate\Http\Request;
@@ -77,14 +80,67 @@ class EquipamentoController extends Controller
         return redirect()->route('equipamentos.show', ['equipamento' => $equipamento]);
     }
 
-    public function destroy(Equipamento $equipamento)
+    /**
+     * Tela de conferência antes de excluir: mostra tudo que será apagado junto.
+     */
+    public function confirmarExclusao(Equipamento $equipamento)
     {
         Gate::authorize('admin');
 
-        $rack_id = $equipamento->rack_id;
-        $equipamento->delete();
+        $equipamento->load('rack.predio', 'modeloSwitch');
 
-        session()->flash('alert-success', 'Equipamento removido com sucesso!');
+        $conexoes = $equipamento->conexoes()
+            ->with('patchPanel.rack')
+            ->orderBy('porta_equipamento')
+            ->get();
+
+        $vinculos = PatchPanelSala::with('sala.predio', 'tipoPorta')
+            ->whereIn('patch_panel_id', $conexoes->pluck('patch_panel_id')->unique())
+            ->get()
+            ->keyBy(fn ($v) => $v->patch_panel_id . ':' . $v->porta);
+
+        $portaIds = $equipamento->portas()->pluck('id');
+        $snapshotIds = Snapshot::whereIn('porta_id', $portaIds)->pluck('id');
+
+        return view('equipamentos.excluir', [
+            'equipamento' => $equipamento,
+            'conexoes' => $conexoes,
+            'vinculos' => $vinculos,
+            'historico' => [
+                'portas' => $portaIds->count(),
+                'snapshots' => $snapshotIds->count(),
+                'macs' => Mac::whereIn('snapshot_id', $snapshotIds)->count(),
+            ],
+        ]);
+    }
+
+    public function destroy(Request $request, Equipamento $equipamento)
+    {
+        Gate::authorize('admin');
+
+        $request->validate([
+            'confirmo' => 'accepted',
+        ], [
+            'confirmo.accepted' => 'Marque a confirmação para excluir o equipamento e suas conexões.',
+        ]);
+
+        $rack_id = $equipamento->rack_id;
+
+        $conexoes = DB::transaction(function () use ($equipamento) {
+            // Histórico de portas (API/SNMP): as FKs não têm cascade, então apaga na ordem
+            $portaIds = $equipamento->portas()->pluck('id');
+            $snapshotIds = Snapshot::whereIn('porta_id', $portaIds)->pluck('id');
+            Mac::whereIn('snapshot_id', $snapshotIds)->delete();
+            Snapshot::whereIn('id', $snapshotIds)->delete();
+            $equipamento->portas()->delete();
+
+            $conexoes = $equipamento->conexoes()->delete();
+            $equipamento->delete();
+
+            return $conexoes;
+        });
+
+        session()->flash('alert-success', "Equipamento {$equipamento->hostname} excluído, com {$conexoes} conexão(ões) com patch panels.");
         return redirect()->route('racks.show', ['rack' => $rack_id]);
     }
 }

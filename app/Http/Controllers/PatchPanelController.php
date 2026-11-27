@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\PatchPanel;
+use Illuminate\Support\Facades\DB;
+use App\Models\PatchPanelSala;
 use App\Models\Rack;
 use App\Models\Sala;
 use App\Http\Requests\PatchPanelRequest;
@@ -184,16 +186,110 @@ class PatchPanelController extends Controller
         return redirect()->route('patch-panels.show', ['patchPanel' => $patchPanel]);
     }
 
-    public function destroy(PatchPanel $patchPanel)
+    /**
+     * Cria ou atualiza o vínculo de uma porta com uma sala (usado pelo diagrama do rack).
+     */
+    public function salvarPorta(Request $request, PatchPanel $patchPanel, int $porta)
     {
         Gate::authorize('admin');
 
-        if ($patchPanel->salasVinculadas->isEmpty()) {
-            $patchPanel->delete();
-            session()->flash('alert-success', 'Patch panel removido com sucesso');
-        } else {
-            session()->flash('alert-danger', 'Não foi possível deletar, pois existem portas vinculadas');
+        if ($porta < 1 || $porta > $patchPanel->qtde_portas) {
+            return response()->json(['message' => "O patch panel {$patchPanel->nome} tem apenas {$patchPanel->qtde_portas} portas."], 422);
         }
-        return back();
+
+        $dados = $request->validate([
+            'sala_id' => 'required|exists:salas,id',
+            'tipo_porta_id' => 'nullable|exists:tipo_portas,id',
+            'comentario' => 'nullable|string|max:255',
+            'tamanho' => 'nullable|numeric|min:0',
+        ], [
+            'sala_id.required' => 'Escolha a sala.',
+        ]);
+
+        $vinculo = PatchPanelSala::where('patch_panel_id', $patchPanel->id)->where('porta', $porta)->first();
+
+        $criado = !$vinculo;
+        if ($vinculo) {
+            // mantém a marcação na planta (x/y), que é o local físico da tomada
+            $vinculo->update($dados + ['user_id' => auth()->id()]);
+        } else {
+            $vinculo = PatchPanelSala::create($dados + [
+                'patch_panel_id' => $patchPanel->id,
+                'porta' => $porta,
+                'user_id' => auth()->id(),
+            ]);
+        }
+
+        session()->flash('alert-success', "Porta {$porta} do patch panel {$patchPanel->nome} salva.");
+
+        return response()->json(['success' => true, 'id' => $vinculo->id, 'criado' => $criado]);
+    }
+
+    /**
+     * Remove o vínculo de uma porta com sala (e a marcação dela na planta, se houver).
+     */
+    public function removerPorta(PatchPanel $patchPanel, int $porta)
+    {
+        Gate::authorize('admin');
+
+        $removidos = PatchPanelSala::where('patch_panel_id', $patchPanel->id)->where('porta', $porta)->delete();
+
+        if ($removidos) {
+            session()->flash('alert-success', "Porta {$porta} do patch panel {$patchPanel->nome} desvinculada.");
+        }
+
+        return response()->json(['success' => true, 'removidos' => $removidos]);
+    }
+
+    /**
+     * Tela de conferência antes de excluir: mostra tudo que será apagado junto.
+     */
+    public function confirmarExclusao(PatchPanel $patchPanel)
+    {
+        Gate::authorize('admin');
+
+        $patchPanel->load('rack.predio');
+
+        $vinculosSalas = PatchPanelSala::with(['sala.predio', 'tipoPorta', 'planta'])
+            ->where('patch_panel_id', $patchPanel->id)
+            ->orderBy('porta')
+            ->get();
+
+        $conexoes = $patchPanel->conexoes()
+            ->with('equipamento.rack')
+            ->orderBy('porta_patch_panel')
+            ->get();
+
+        return view('patch-panels.excluir', [
+            'patchPanel' => $patchPanel,
+            'vinculosSalas' => $vinculosSalas,
+            'conexoes' => $conexoes,
+        ]);
+    }
+
+    public function destroy(Request $request, PatchPanel $patchPanel)
+    {
+        Gate::authorize('admin');
+
+        $request->validate([
+            'confirmo' => 'accepted',
+        ], [
+            'confirmo.accepted' => 'Marque a confirmação para excluir o patch panel e seus vínculos.',
+        ]);
+
+        $rack = $patchPanel->rack;
+
+        $totais = DB::transaction(function () use ($patchPanel) {
+            $conexoes = $patchPanel->conexoes()->delete();
+            $salas = PatchPanelSala::where('patch_panel_id', $patchPanel->id)->delete();
+            $patchPanel->delete();
+            return compact('conexoes', 'salas');
+        });
+
+        session()->flash('alert-success', "Patch panel {$patchPanel->nome} excluído, com {$totais['salas']} vínculo(s) com salas e {$totais['conexoes']} conexão(ões) com switches.");
+
+        return $rack
+            ? redirect()->route('racks.show', ['rack' => $rack])
+            : redirect('/');
     }
 }

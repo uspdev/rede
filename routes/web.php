@@ -61,6 +61,7 @@ Route::get('/patch-panels/create', [PatchPanelController::class, 'create'])->nam
 Route::post('/patch-panels', [PatchPanelController::class, 'store'])->name('patch-panels.store');
 Route::get('/patch-panels/{patchPanel}', [PatchPanelController::class, 'show'])->name('patch-panels.show');
 Route::get('/patch-panels/{patchPanel}/edit', [PatchPanelController::class, 'edit'])->name('patch-panels.edit');
+Route::get('/patch-panels/{patchPanel}/excluir', [PatchPanelController::class, 'confirmarExclusao'])->name('patch-panels.excluir');
 Route::put('/patch-panels/{patchPanel}', [PatchPanelController::class, 'update'])->name('patch-panels.update');
 Route::delete('/patch-panels/{patchPanel}', [PatchPanelController::class, 'destroy'])->name('patch-panels.destroy');
 
@@ -69,6 +70,7 @@ Route::get('/equipamentos/create', [EquipamentoController::class, 'create'])->na
 Route::post('/equipamentos', [EquipamentoController::class, 'store'])->name('equipamentos.store');
 Route::get('/equipamentos/{equipamento}', [EquipamentoController::class, 'show'])->name('equipamentos.show');
 Route::get('/equipamentos/{equipamento}/edit', [EquipamentoController::class, 'edit'])->name('equipamentos.edit');
+Route::get('/equipamentos/{equipamento}/excluir', [EquipamentoController::class, 'confirmarExclusao'])->name('equipamentos.excluir');
 Route::put('/equipamentos/{equipamento}', [EquipamentoController::class, 'update'])->name('equipamentos.update');
 Route::delete('/equipamentos/{equipamento}', [EquipamentoController::class, 'destroy'])->name('equipamentos.destroy');
 
@@ -84,11 +86,13 @@ Route::delete('/tipo-portas/{tipoPorta}', [TipoPortaController::class, 'destroy'
 // Plantas
 Route::get('/plantas/public/{planta}', [PlantaController::class, 'showPublic'])->name('plantas.public');
 Route::get('/plantas/pdf/{planta}', [PlantaController::class, 'pdfPublic'])->name('plantas.pdf');
+Route::get('/plantas/imprimir/{planta}', [PlantaController::class, 'imprimir'])->name('plantas.imprimir');
 Route::post('/plantas/{predio}', [PlantaController::class, 'store'])->name('plantas.store');
 Route::get('/plantas/{planta}/edit', [PlantaController::class, 'edit'])->name('plantas.edit');
 Route::get('/plantas/{planta}/mark', [PlantaController::class, 'editMark'])->name('plantas.mark');
 Route::delete('/plantas/{patch_panel_sala_id}/unmark', [PlantaController::class, 'unmark'])->name('plantas.unmark');
 Route::put('/plantas/{planta}/mark', [PlantaController::class, 'mark'])->name('plantas.mark.update');
+Route::put('/plantas/{planta}/config', [PlantaController::class, 'config'])->name('plantas.config');
 Route::put('/plantas/{planta}', [PlantaController::class, 'update'])->name('plantas.update');
 Route::get('/plantas/{predio}/{planta}', [PlantaController::class, 'show'])->name('plantas.show');
 Route::get('/plantas/{predio}', [PlantaController::class, 'index'])->name('plantas.index');
@@ -99,6 +103,9 @@ Route::get('/patch-panels/{patchPanel}/selecionar-sala', [PatchPanelController::
 Route::get('/patch-panels/{patchPanel}/selecionar-tipo-porta/{sala}', [PatchPanelController::class, 'selecionarTipoPorta'])->name('patch-panels.selecionar-tipo-porta');
 Route::post('/patch-panels/{patchPanel}/vincular-sala', [PatchPanelController::class, 'vincularSala'])->name('patch-panels.vincular-sala');
 Route::delete('/patch-panels/{patchPanel}/desvincular-sala/{sala}', [PatchPanelController::class, 'desvincularSala'])->name('patch-panels.desvincular-sala');
+// Vínculo da porta direto pelo diagrama do rack (JSON)
+Route::put('/patch-panels/{patchPanel}/porta/{porta}', [PatchPanelController::class, 'salvarPorta'])->whereNumber('porta')->name('patch-panels.porta.salvar');
+Route::delete('/patch-panels/{patchPanel}/porta/{porta}', [PatchPanelController::class, 'removerPorta'])->whereNumber('porta')->name('patch-panels.porta.remover');
 
 // Editar tipo de porta patch panels
 Route::get('/patch-panels/{patchPanel}/editar-tipo-porta/{sala}', [PatchPanelController::class, 'editarTipoPorta'])->name('patch-panels.editar-tipo-porta');

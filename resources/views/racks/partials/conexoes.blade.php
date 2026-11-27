@@ -12,6 +12,10 @@
         ->get()
         ->map->paraDiagrama()
         ->values();
+
+    // Para o formulário de vínculo da porta do patch panel
+    $salasPredio = \App\Models\Sala::where('predio_id', $rack->predio_id)->orderBy('nome')->get(['id', 'nome', 'descricao']);
+    $tiposPortaForm = \App\Models\TipoPorta::orderBy('nome')->get(['id', 'nome', 'cor']);
 @endphp
 
 <style>
@@ -48,6 +52,8 @@
     .net-port.is-hl .sw-jack,
     .net-port.is-hl .pp-jack { transform: scale(1.3); box-shadow: 0 0 0 2px #ffc107, 0 0 8px #ffc107; position: relative; z-index: 2; }
 
+    .pp-port.net-port { cursor: pointer; }
+
     /* Modo conectar */
     .net-on .net-port { cursor: pointer; }
     .net-port.is-sel .sw-jack,
@@ -71,6 +77,36 @@
     .net-cabos path.fio { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: net-draw .5s ease-out forwards; }
     @keyframes net-draw { to { stroke-dashoffset: 0; } }
 
+    /* Modal de vínculo da porta do patch panel */
+    .pm-fundo { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 1100; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .pm-fundo.show { display: flex; }
+    .pm-caixa { background: #fff; border-radius: 10px; width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+    .pm-cab { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .pm-cab h3 { font-size: 16px; margin: 0; }
+    .pm-cab small { color: #64748b; }
+    .pm-fechar { border: 0; background: none; font-size: 22px; line-height: 1; color: #64748b; cursor: pointer; }
+    .pm-corpo { padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+    .pm-corpo label.rot { font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px; display: block; }
+    .pm-salas { border: 1px solid #cbd5e1; border-radius: 6px; }
+    .pm-salas input { border: 0; border-bottom: 1px solid #e2e8f0; border-radius: 6px 6px 0 0; width: 100%; padding: 6px 10px; font-size: 13px; outline: none; }
+    .pm-salas ul { list-style: none; margin: 0; padding: 4px; max-height: 170px; overflow-y: auto; }
+    .pm-salas li { padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .pm-salas li small { color: #64748b; }
+    .pm-salas li:hover { background: #f1f5f9; }
+    .pm-salas li.sel { background: #0d6efd; color: #fff; }
+    .pm-salas li.sel small { color: #dbeafe; }
+    .pm-tipos { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pm-tipos button { border: 1px solid #cbd5e1; background: #fff; border-radius: 999px; padding: 3px 10px 3px 6px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .pm-tipos button i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(0,0,0,.25); display: inline-block; }
+    .pm-tipos button.sel { border-color: #0d6efd; box-shadow: 0 0 0 2px rgba(13,110,253,.25); font-weight: 600; }
+    .pm-linha { display: flex; gap: 10px; }
+    .pm-linha > div { flex: 1; }
+    .pm-corpo input.form-control { font-size: 13px; }
+    .pm-info { font-size: 12px; background: #f1f5f9; border-radius: 6px; padding: 6px 10px; color: #334155; }
+    .pm-erro { font-size: 12px; color: #dc3545; display: none; }
+    .pm-rodape { padding: 12px 18px; border-top: 1px solid #e2e8f0; display: flex; gap: 8px; align-items: center; }
+    .pm-rodape .esp { flex: 1; }
+
     .net-tooltip {
         position: fixed; z-index: 1080; pointer-events: none;
         background: rgba(0,0,0,.88); color: #fff;
@@ -93,6 +129,63 @@
 </style>
 
 <div class="net-tooltip" id="net-tooltip"></div>
+
+<div class="pm-fundo" id="pm-fundo" role="dialog" aria-modal="true" aria-labelledby="pm-titulo">
+    <div class="pm-caixa">
+        <div class="pm-cab">
+            <div>
+                <h3 id="pm-titulo">Porta</h3>
+                <small id="pm-sub"></small>
+            </div>
+            <button type="button" class="pm-fechar" id="pm-fechar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="pm-corpo">
+            <div class="pm-info" id="pm-switch" style="display: none;"></div>
+            <div>
+                <label class="rot">Sala *</label>
+                <div class="pm-salas">
+                    <input type="search" id="pm-busca" placeholder="Buscar sala…" autocomplete="off">
+                    <ul id="pm-lista-salas">
+                        @foreach($salasPredio as $sala)
+                            <li data-id="{{ $sala->id }}" data-busca="{{ Str::lower($sala->nome . ' ' . $sala->descricao) }}">
+                                {{ $sala->nome }} @if($sala->descricao)<small>— {{ $sala->descricao }}</small>@endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+                @if($salasPredio->isEmpty())
+                    <small class="text-muted">Nenhuma sala cadastrada neste prédio.</small>
+                @endif
+            </div>
+            <div>
+                <label class="rot">Tipo de porta</label>
+                <div class="pm-tipos" id="pm-tipos">
+                    <button type="button" data-id=""><i style="background: #198754;"></i>Sem tipo</button>
+                    @foreach($tiposPortaForm as $tipo)
+                        <button type="button" data-id="{{ $tipo->id }}"><i style="background: {{ $tipo->cor ?: '#198754' }};"></i>{{ $tipo->nome }}</button>
+                    @endforeach
+                </div>
+            </div>
+            <div class="pm-linha">
+                <div>
+                    <label class="rot" for="pm-comentario">Comentário</label>
+                    <input type="text" class="form-control form-control-sm" id="pm-comentario" maxlength="255" placeholder="Ex.: atrás da mesa">
+                </div>
+                <div style="flex: 0 0 130px;">
+                    <label class="rot" for="pm-tamanho">Comprimento (m)</label>
+                    <input type="number" class="form-control form-control-sm" id="pm-tamanho" step="0.01" min="0">
+                </div>
+            </div>
+            <div class="pm-erro" id="pm-erro"></div>
+        </div>
+        <div class="pm-rodape">
+            <button type="button" class="btn btn-sm btn-outline-danger" id="pm-remover">Desvincular</button>
+            <span class="esp"></span>
+            <button type="button" class="btn btn-sm btn-secondary" id="pm-cancelar">Cancelar</button>
+            <button type="button" class="btn btn-sm btn-primary" id="pm-salvar">Salvar</button>
+        </div>
+    </div>
+</div>
 <div class="net-toast" id="net-toast"></div>
 
 <script>
@@ -110,7 +203,7 @@
     const toast = document.getElementById('net-toast');
     if (!root) return;
 
-    const HINT_OFF = 'Passe o mouse numa porta para ver a conexão. Clique num switch para ver os cabos até o patch panel.';
+    const HINT_OFF = 'Clique numa porta do patch panel para vincular a uma sala. Clique num switch para ver os cabos.';
     const COR_CABO_PADRAO = '#5c7cfa'; // porta do patch panel sem sala vinculada
     const HINT_ON = 'Clique numa porta do switch e depois numa do patch panel (ou o contrário). Clique numa porta já conectada para desconectar. Esc para sair.';
 
@@ -303,7 +396,10 @@
     }
 
     function clique(el) {
-        if (!modo) return;
+        if (!modo) {
+            if (el.dataset.kind === 'pp') abrirPorta(el);
+            return;
+        }
         const c = conexaoDe(el);
 
         if (c) {
@@ -375,8 +471,107 @@
 
     if (toggle) toggle.addEventListener('click', () => setModo(!modo));
     document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && fundoModal.classList.contains('show')) { fecharPorta(); return; }
         if (e.key === 'Escape' && modo) {
             if (selecionada) limparSelecao(); else setModo(false);
+        }
+    });
+
+    // ---------- Formulário da porta do patch panel (sala, tipo, comentário...) ----------
+    const URL_PORTA = @json(url('/patch-panels')) ;
+    const fundoModal = document.getElementById('pm-fundo');
+    const listaSalas = document.getElementById('pm-lista-salas');
+    const buscaSala = document.getElementById('pm-busca');
+    const erroModal = document.getElementById('pm-erro');
+    let portaAtual = null, salaSel = null, tipoSel = '';
+
+    function marcarSala(id) {
+        salaSel = id ? String(id) : null;
+        listaSalas.querySelectorAll('li').forEach(li => li.classList.toggle('sel', li.dataset.id === salaSel));
+    }
+    function marcarTipo(id) {
+        tipoSel = id ? String(id) : '';
+        document.querySelectorAll('#pm-tipos button').forEach(b => b.classList.toggle('sel', b.dataset.id === tipoSel));
+    }
+
+    function abrirPorta(el) {
+        portaAtual = el;
+        const vinculada = el.classList.contains('is-linked');
+        document.getElementById('pm-titulo').textContent = `Patch panel ${el.dataset.label} · porta ${el.dataset.porta}`;
+        document.getElementById('pm-sub').textContent = vinculada ? 'Vinculada a uma sala — edite ou desvincule' : 'Porta livre — escolha a sala';
+        buscaSala.value = '';
+        listaSalas.querySelectorAll('li').forEach(li => li.style.display = '');
+        marcarSala(el.dataset.salaId);
+        marcarTipo(el.dataset.tipoId);
+        document.getElementById('pm-comentario').value = el.dataset.comentario || '';
+        document.getElementById('pm-tamanho').value = el.dataset.tamanho || '';
+        document.getElementById('pm-remover').style.display = vinculada ? '' : 'none';
+        erroModal.style.display = 'none';
+
+        const c = conexaoDe(el);
+        const info = document.getElementById('pm-switch');
+        info.style.display = c ? '' : 'none';
+        if (c) info.textContent = `🔗 Ligada ao switch ${c.swLabel}, porta ${c.swPorta}`;
+
+        tip.style.opacity = 0;
+        fundoModal.classList.add('show');
+        const sel = listaSalas.querySelector('li.sel');
+        if (sel) sel.scrollIntoView({ block: 'nearest' });
+        setTimeout(() => buscaSala.focus(), 50);
+    }
+    function fecharPorta() {
+        fundoModal.classList.remove('show');
+        portaAtual = null;
+    }
+
+    buscaSala.addEventListener('input', function () {
+        const q = this.value.trim().toLowerCase();
+        listaSalas.querySelectorAll('li').forEach(li => li.style.display = !q || li.dataset.busca.includes(q) ? '' : 'none');
+    });
+    buscaSala.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const primeira = [...listaSalas.querySelectorAll('li')].find(li => li.style.display !== 'none');
+            if (primeira) marcarSala(primeira.dataset.id);
+        }
+    });
+    listaSalas.addEventListener('click', e => { const li = e.target.closest('li'); if (li) marcarSala(li.dataset.id); });
+    document.getElementById('pm-tipos').addEventListener('click', e => { const b = e.target.closest('button'); if (b) marcarTipo(b.dataset.id); });
+    document.getElementById('pm-fechar').addEventListener('click', fecharPorta);
+    document.getElementById('pm-cancelar').addEventListener('click', fecharPorta);
+    fundoModal.addEventListener('click', e => { if (e.target === fundoModal) fecharPorta(); });
+
+    document.getElementById('pm-salvar').addEventListener('click', async function () {
+        if (!portaAtual) return;
+        if (!salaSel) { erroModal.textContent = 'Escolha a sala.'; erroModal.style.display = 'block'; return; }
+        this.disabled = true;
+        try {
+            const tamanho = document.getElementById('pm-tamanho').value;
+            await api('PUT', `${URL_PORTA}/${portaAtual.dataset.dev}/porta/${portaAtual.dataset.porta}`, {
+                sala_id: Number(salaSel),
+                tipo_porta_id: tipoSel ? Number(tipoSel) : null,
+                comentario: document.getElementById('pm-comentario').value || null,
+                tamanho: tamanho === '' ? null : Number(tamanho),
+            });
+            window.location.reload();
+        } catch (e) {
+            erroModal.textContent = e.message;
+            erroModal.style.display = 'block';
+            this.disabled = false;
+        }
+    });
+
+    document.getElementById('pm-remover').addEventListener('click', async function () {
+        if (!portaAtual) return;
+        let msg = `Desvincular a porta ${portaAtual.dataset.porta} do patch panel ${portaAtual.dataset.label} da sala?`;
+        if (portaAtual.dataset.marcada === '1') msg += '\n\nA marcação desta porta na planta também será removida.';
+        if (!confirm(msg)) return;
+        try {
+            await api('DELETE', `${URL_PORTA}/${portaAtual.dataset.dev}/porta/${portaAtual.dataset.porta}`);
+            window.location.reload();
+        } catch (e) {
+            erroModal.textContent = e.message;
+            erroModal.style.display = 'block';
         }
     });
 

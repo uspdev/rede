@@ -29,7 +29,15 @@
                 $tip .= ' · ' . $sala->pivot->comentario;
             }
 
-            $portas[$sala->pivot->porta] = ['cor' => $cor, 'tip' => $tip];
+            $portas[$sala->pivot->porta] = [
+                'cor' => $cor,
+                'tip' => $tip,
+                'sala_id' => $sala->id,
+                'tipo_id' => $sala->pivot->tipo_porta_id,
+                'comentario' => $sala->pivot->comentario,
+                'tamanho' => $sala->pivot->tamanho,
+                'marcada' => (bool) $sala->pivot->planta_id,
+            ];
         }
 
         return ['model' => $patchPanel, 'portas' => $portas];
@@ -131,6 +139,13 @@
                                                  data-dev="{{ $patchPanel->id }}"
                                                  data-porta="{{ $porta }}"
                                                  data-label="{{ $patchPanel->nome }}"
+                                                 @if($info)
+                                                 data-sala-id="{{ $info['sala_id'] }}"
+                                                 data-tipo-id="{{ $info['tipo_id'] }}"
+                                                 data-comentario="{{ $info['comentario'] }}"
+                                                 data-tamanho="{{ $info['tamanho'] }}"
+                                                 data-marcada="{{ $info['marcada'] ? 1 : 0 }}"
+                                                 @endif
                                                  data-tip="Patch panel {{ $patchPanel->nome }} · porta {{ $porta }} · {{ $info['tip'] ?? 'sem sala' }}">
                                                 <span class="pp-num"><i></i>{{ $porta }}</span>
                                                 <span class="pp-jack"></span>

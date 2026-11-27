@@ -6,7 +6,10 @@
         <span class="h4 mb-0 text-dark">
             <i class="fas fa-network-wired"></i> {{ $equipamento->hostname }}
         </span>
-        <a href="#" onclick="history.back(); return false;" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Voltar</a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('equipamentos.excluir', ['equipamento' => $equipamento]) }}" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i> Excluir</a>
+            <a href="#" onclick="history.back(); return false;" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Voltar</a>
+        </div>
     </div>
     <div class="card-body">
         <div class="row">

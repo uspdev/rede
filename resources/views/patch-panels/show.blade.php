@@ -13,9 +13,14 @@
                     Rack: {{ $patchPanel->rack->nome }} | Prédio: {{ $patchPanel->rack->predio->nome }}
                 </small>
             </span>
-            <a href="{{ route('racks.show', ['rack' => $patchPanel->rack]) }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Voltar
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('patch-panels.excluir', ['patchPanel' => $patchPanel]) }}" class="btn btn-outline-danger">
+                    <i class="fas fa-trash"></i> Excluir
+                </a>
+                <a href="{{ route('racks.show', ['rack' => $patchPanel->rack]) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </div>
         </div>
     </div>
 

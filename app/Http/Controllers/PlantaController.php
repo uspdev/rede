@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Gate;
 use App\Models\Predio;
 use Illuminate\Support\Facades\Storage;
 use App\Models\PatchPanelSala;
+use App\Models\PatchPanel;
 use App\Models\TipoPorta;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class PlantaController extends Controller
 {
@@ -157,10 +157,12 @@ class PlantaController extends Controller
             ->whereNotNull('y')
             ->get();
 
-        // pontos do MESMO PRÉDIO que ainda estão sem coordenadas (x e y nulos)
-        $pontosSemMarcacao = PatchPanelSala::with(['patchPanel.rack', 'sala'])
-            ->whereHas('sala', function ($query) use ($predio_id) {
-                $query->where('predio_id', $predio_id);
+        // pontos do MESMO PRÉDIO que ainda estão sem coordenadas (x e y nulos):
+        // pela sala vinculada ou pelo rack do patch panel
+        $pontosSemMarcacao = PatchPanelSala::with(['patchPanel.rack', 'sala', 'tipoPorta'])
+            ->where(function ($q) use ($predio_id) {
+                $q->whereHas('sala', fn ($s) => $s->where('predio_id', $predio_id))
+                  ->orWhereHas('patchPanel.rack', fn ($r) => $r->where('predio_id', $predio_id));
             })
             ->whereNull('x')
             ->whereNull('y')
@@ -172,6 +174,33 @@ class PlantaController extends Controller
             ])
             ->values(); // Reindexa a coleção
 
+        // Portas dos patch panels do prédio que ainda não têm sala vinculada
+        $patchPanelsPredio = PatchPanel::with('rack')
+            ->whereHas('rack', fn ($r) => $r->where('predio_id', $predio_id))
+            ->get()
+            ->sortBy([
+                fn ($a, $b) => ($a->rack->nome ?? '') <=> ($b->rack->nome ?? ''),
+                fn ($a, $b) => $a->nome <=> $b->nome,
+            ]);
+        $ocupadas = PatchPanelSala::whereIn('patch_panel_id', $patchPanelsPredio->pluck('id'))
+            ->get(['patch_panel_id', 'porta'])
+            ->map(fn ($v) => $v->patch_panel_id . ':' . $v->porta)
+            ->flip();
+        $portasSemSala = [];
+        foreach ($patchPanelsPredio as $pp) {
+            for ($porta = 1; $porta <= $pp->qtde_portas; $porta++) {
+                if (!$ocupadas->has($pp->id . ':' . $porta)) {
+                    $portasSemSala[] = [
+                        'pp' => $pp->id,
+                        'porta' => $porta,
+                        'nome' => ($pp->rack->nome ?? '') . '-' . $pp->nome . '-' . $porta,
+                    ];
+                }
+            }
+        }
+
+        $salasPredio = Sala::where('predio_id', $predio_id)->orderBy('nome')->get(['id', 'nome', 'x', 'y', 'planta_id']);
+
         // Busca todos os tipos de porta disponíveis
         $tipoPortas = TipoPorta::all();
 
@@ -180,12 +209,16 @@ class PlantaController extends Controller
             'markers' => $markers,
             'salasMarkerd' => $salasMarkerd,
             'pontosSemMarcacao' => $pontosSemMarcacao,
+            'portasSemSala' => $portasSemSala,
+            'salasPredio' => $salasPredio,
             'tipoPortas' => $tipoPortas, // Passado para o Blade
         ]);
     }
 
     public function mark(Planta $planta, Request $request)
     {
+        Gate::authorize('admin');
+
         // Tornamos os campos de formulário opcionais no request para requisições via Drag & Drop
         $validated = $request->validate([
             'patch_panel_sala_id' => 'required|exists:patch_panel_sala,id',
@@ -193,7 +226,9 @@ class PlantaController extends Controller
             'x'                   => 'required|numeric',
             'y'                   => 'required|numeric',
             'fontsize'            => 'nullable|integer|min:2|max:50',
-            'label_position'      => 'nullable|in:left,right,top,bottom',
+            'label_position'      => 'nullable|in:left,right,top,bottom,livre',
+            'label_dx'            => 'nullable|numeric|between:-60,60',
+            'label_dy'            => 'nullable|numeric|between:-60,60',
         ]);
 
         $ponto = PatchPanelSala::findOrFail($validated['patch_panel_sala_id']);
@@ -221,6 +256,10 @@ class PlantaController extends Controller
         if ($request->filled('label_position')) {
             $dadosParaAtualizar['label_position'] = $request->label_position;
         }
+        if ($request->filled('label_dx') && $request->filled('label_dy')) {
+            $dadosParaAtualizar['label_dx'] = $validated['label_dx'];
+            $dadosParaAtualizar['label_dy'] = $validated['label_dy'];
+        }
 
         // Executa a atualização sem alterar os dados não enviados
         $ponto->update($dadosParaAtualizar);
@@ -235,6 +274,37 @@ class PlantaController extends Controller
         }
 
         return redirect()->back()->with('success', 'Ponto atualizado com sucesso!');
+    }
+
+    /**
+     * Configurações de exibição da planta (tamanho global das marcações e recorte).
+     */
+    public function config(Planta $planta, Request $request)
+    {
+        Gate::authorize('admin');
+
+        $validated = $request->validate([
+            'escala_marcadores' => 'sometimes|numeric|between:0.2,5',
+            'recorte'           => 'sometimes|nullable|array',
+            'recorte.x'         => 'required_with:recorte|numeric|between:0,100',
+            'recorte.y'         => 'required_with:recorte|numeric|between:0,100',
+            'recorte.w'         => 'required_with:recorte|numeric|between:1,100',
+            'recorte.h'         => 'required_with:recorte|numeric|between:1,100',
+        ]);
+
+        if (array_key_exists('escala_marcadores', $validated)) {
+            $planta->escala_marcadores = $validated['escala_marcadores'];
+        }
+        if ($request->exists('recorte')) {
+            $planta->recorte = $validated['recorte'] ?? null;
+        }
+        $planta->save();
+
+        return response()->json([
+            'success' => true,
+            'escala_marcadores' => $planta->escala_marcadores,
+            'recorte' => $planta->recorteValido(),
+        ]);
     }
 
     public function destroy(Predio $predio, Planta $planta)
@@ -275,7 +345,11 @@ class PlantaController extends Controller
         return back()->with('success', 'Ponto removido com sucesso!');
     }
 
-    public function pdfPublic(Planta $planta)
+    /**
+     * Versão para impressão: o navegador desenha a planta (SVG vetorial) e as marcações
+     * por cima, usando as mesmas coordenadas em % salvas no banco.
+     */
+    public function imprimir(Planta $planta)
     {
         if (!$planta->public) {
             Gate::authorize('admin');
@@ -285,140 +359,36 @@ class PlantaController extends Controller
 
         $markers = PatchPanelSala::where('planta_id', $planta->id)
             ->where('visible', true)
+            ->whereNotNull('x')
+            ->whereNotNull('y')
             ->with(['patchPanel.rack', 'sala', 'tipoPorta'])
             ->get()
             ->sortBy([
                 fn ($a, $b) => (optional($a->sala)->nome ?? '') <=> (optional($b->sala)->nome ?? ''),
-                fn ($a, $b) => (optional(optional($a->patchPanel)->rack)->nome ?? '') <=> (optional(optional($a->patchPanel)->rack)->nome ?? ''),
+                fn ($a, $b) => (optional(optional($a->patchPanel)->rack)->nome ?? '') <=> (optional(optional($b->patchPanel)->rack)->nome ?? ''),
                 fn ($a, $b) => (optional($a->patchPanel)->nome ?? '') <=> (optional($b->patchPanel)->nome ?? ''),
                 fn ($a, $b) => ($a->porta ?? 0) <=> ($b->porta ?? 0),
             ])
             ->values();
 
-        $pngBase64 = null;
+        $salas = Sala::where('planta_id', $planta->id)
+            ->whereNotNull('x')
+            ->whereNotNull('y')
+            ->get();
 
-        if ($planta->path && Storage::exists($planta->path)) {
-            $rawSvg = Storage::get($planta->path);
+        return view('plantas.imprimir', [
+            'planta' => $planta,
+            'markers' => $markers,
+            'salas' => $salas,
+            'viewBox' => $planta->viewBox(),
+            'publicUrl' => route('plantas.public', ['planta' => $planta]),
+        ]);
+    }
 
-            try {
-                $xml = new \SimpleXMLElement($rawSvg);
-
-                // 1. Identifica dimensões do SVG
-                $vbMinX = 0;
-                $vbMinY = 0;
-                $viewBoxWidth = 1000;
-                $viewBoxHeight = 1000;
-
-                if (isset($xml['viewBox'])) {
-                    $vbStr = (string)$xml['viewBox'];
-                    if (preg_match('/^\s*([\d\.\-]+)[\s,]+([\d\.\-]+)[\s,]+([\d\.\-]+)[\s,]+([\d\.\-]+)/', $vbStr, $m)) {
-                        $vbMinX = (float)$m[1];
-                        $vbMinY = (float)$m[2];
-                        $viewBoxWidth = (float)$m[3];
-                        $viewBoxHeight = (float)$m[4];
-                    }
-                } elseif (isset($xml['width']) && isset($xml['height'])) {
-                    $viewBoxWidth = (float) str_replace(['px', 'pt', 'mm', 'cm'], '', $xml['width']);
-                    $viewBoxHeight = (float) str_replace(['px', 'pt', 'mm', 'cm'], '', $xml['height']);
-                }
-
-                $scaleFactor = max($viewBoxWidth, $viewBoxHeight) / 1000;
-                $namespaces = $xml->getNamespaces(true);
-                $svgNs = $namespaces[''] ?? 'http://www.w3.org/2000/svg';
-
-                $markersGroup = $xml->addChild('g', null, $svgNs);
-                $markersGroup->addAttribute('id', 'layer-pontos-injetados');
-
-                foreach ($markers as $marker) {
-                    $cx = $vbMinX + (($marker->x / 100) * $viewBoxWidth);
-                    $cy = $vbMinY + (($marker->y / 100) * $viewBoxHeight);
-                    
-                    $textoExibicao = (string) $marker->id;
-                    $cor = optional($marker->tipoPorta)->cor ?? '#ef4444';
-
-                    $baseFontSize = $marker->fontsize ?? 10;
-                    $fontSize = $baseFontSize * 1.45 * $scaleFactor;
-                    $triBase = $fontSize * 0.75; 
-                    $strokeWidth = max(0.8, $triBase * 0.15);
-
-                    $p1 = "0,-" . ($triBase * 0.95);
-                    $p2 = "-" . ($triBase * 0.7) . "," . ($triBase * 0.7);
-                    $p3 = ($triBase * 0.7) . "," . ($triBase * 0.7);
-                    $pointsStr = "{$p1} {$p2} {$p3}";
-
-                    $labelPos = strtolower($marker->label_position ?? 'right');
-                    $textAnchor = 'start';
-                    $dx = $triBase + (3 * $scaleFactor);
-                    $dy = ($fontSize * 0.32);
-
-                    if ($labelPos === 'left') {
-                        $textAnchor = 'end';
-                        $dx = -($triBase + (3 * $scaleFactor));
-                    } elseif ($labelPos === 'top') {
-                        $textAnchor = 'middle';
-                        $dx = 0;
-                        $dy = -($triBase + (3 * $scaleFactor));
-                    } elseif ($labelPos === 'bottom') {
-                        $textAnchor = 'middle';
-                        $dx = 0;
-                        $dy = $triBase + $fontSize;
-                    }
-
-                    $g = $markersGroup->addChild('g', null, $svgNs);
-                    $g->addAttribute('transform', "translate({$cx}, {$cy})");
-
-                    $polygon = $g->addChild('polygon', null, $svgNs);
-                    $polygon->addAttribute('points', $pointsStr);
-                    $polygon->addAttribute('fill', $cor);
-                    $polygon->addAttribute('stroke', '#ffffff');
-                    $polygon->addAttribute('stroke-width', (string)$strokeWidth);
-
-                    $text = $g->addChild('text', htmlspecialchars($textoExibicao), $svgNs);
-                    $text->addAttribute('x', (string)$dx);
-                    $text->addAttribute('y', (string)$dy);
-                    $text->addAttribute('text-anchor', $textAnchor);
-                    $text->addAttribute('font-family', 'Arial, sans-serif');
-                    $text->addAttribute('font-size', "{$fontSize}px");
-                    $text->addAttribute('font-weight', 'bold');
-                    $text->addAttribute('fill', '#000000');
-                    $text->addAttribute('stroke', '#ffffff');
-                    $text->addAttribute('stroke-width', (string)($strokeWidth * 0.6));
-                    $text->addAttribute('paint-order', 'stroke fill');
-                }
-
-                $svgFinal = $xml->asXML();
-
-                // 2. Converte SVG para PNG de alta definição via Imagick
-                if (extension_loaded('imagick')) {
-                    $im = new \Imagick();
-                    $im->setBackgroundColor(new \ImagickPixel('transparent'));
-                    $im->readImageBlob($svgFinal);
-                    $im->setImageFormat("png32");
-                    $im->resizeImage(1800, 0, \Imagick::FILTER_LANCZOS, 1);
-
-                    $pngBase64 = 'data:image/png;base64,' . base64_encode($im->getImageBlob());
-                    $im->clear();
-                    $im->destroy();
-                } else {
-                    // Fallback para SVG direto se Imagick não estiver ativo
-                    $pngBase64 = 'data:image/svg+xml;base64,' . base64_encode($svgFinal);
-                }
-
-            } catch (\Exception $e) {
-                $pngBase64 = null;
-            }
-        }
-
-        $pdf = Pdf::loadView('plantas.pdf_show', [
-            'planta'    => $planta,
-            'markers'   => $markers,
-            'pngBase64' => $pngBase64,
-            'publicUrl' => url("/plantas/public/{$planta->id}")
-        ])
-        ->setOption('isRemoteEnabled', true)
-        ->setOption('isHtml5ParserEnabled', true)
-        ->setPaper('a4', 'portrait');
-
-        return $pdf->stream("planta_{$planta->id}.pdf");
+    public function pdfPublic(Planta $planta)
+    {
+        // O PDF gerado pelo DomPDF não renderizava o SVG da planta corretamente.
+        // Mantém o link antigo funcionando, mandando para a versão de impressão.
+        return redirect()->route('plantas.imprimir', ['planta' => $planta]);
     }
 }

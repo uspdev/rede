@@ -21,8 +21,8 @@
         <div style="display: flex; gap: 10px; align-items: center;">
             
             <!-- Botão Gerar PDF -->
-            <a href="{{ route('plantas.pdf', ['planta' => $planta]) }}" target="_blank" style="text-decoration: none; color: #fff; background-color: #dc2626; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
-                📄 Exportar PDF
+            <a href="{{ route('plantas.imprimir', ['planta' => $planta]) }}" target="_blank" style="text-decoration: none; color: #fff; background-color: #0d6efd; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                🖨 Imprimir / PDF
             </a>
 
             <!-- Barra de Controles de Zoom -->
@@ -72,14 +72,18 @@
     <div id="viewport" style="position: relative; width: 100%; height: 75vh; overflow: hidden; border: 1px solid #ccc; background-color: #f8fafc; border-radius: 6px;" class="mb-4">
 
         <!-- Target do Panzoom -->
-        <div id="panzoom-target" style="position: relative; width: 100%; transform-origin: 0 0; cursor: grab;">
+        @php $recorte = $planta->estilosRecorte(); @endphp
+        <div id="panzoom-target" style="position: relative; width: 100%; transform-origin: 0 0; cursor: grab; --escala-marcadores: {{ $planta->escala_marcadores ?? 1 }};">
+            <div class="planta-moldura" style="{{ $recorte['moldura'] }}">
+                <div class="planta-camada" style="{{ $recorte['camada'] }}">
+                    <!-- Imagem SVG da Planta Baixa -->
+                    <img id="svg-image" src="{{ route('plantas.show', ['predio' => $planta->predio_id, 'planta' => $planta]) }}" style="width: 100%; height: {{ $planta->recorteValido() ? '100%' : 'auto' }}; display: block; user-select: none;" draggable="false" alt="{{ $planta->name }}">
 
-            <!-- Imagem SVG da Planta Baixa -->
-            <img id="svg-image" src="{{ route('plantas.show', ['predio' => $planta->predio_id, 'planta' => $planta]) }}" style="width: 100%; height: auto; display: block; user-select: none;" draggable="false" alt="{{ $planta->name }}">
-
-            <!-- Renderização dos Marcadores Visíveis -->
-            @include('plantas.partials.markers', ['markers' => $markers])
-            @include('salas.partials.markers', ['salas' => $planta->salas])
+                    <!-- Renderização dos Marcadores Visíveis -->
+                    @include('plantas.partials.markers', ['markers' => $markers])
+                    @include('salas.partials.markers', ['salas' => $planta->salas])
+                </div>
+            </div>
         </div>
     </div>
 
@@ -123,7 +127,7 @@
                                     $corTipo = optional($ponto->tipoPorta)->cor ?? '#ef4444';
                                     $tipoId = $ponto->tipo_porta_id ?? 0;
                                 @endphp
-                                <tr class="ponto-row" data-tipo-id="{{ $tipoId }}" data-sala-key="{{ $salaKey }}" data-tamanho="{{ $ponto->tamanho ?? 0 }}">
+                                <tr class="ponto-row" data-id="{{ $ponto->id }}" title="Clique para localizar na planta" style="cursor: pointer;" data-tipo-id="{{ $tipoId }}" data-sala-key="{{ $salaKey }}" data-tamanho="{{ $ponto->tamanho ?? 0 }}">
                                     <td class="fw-bold ps-4">{{ $nomePonto }}</td>
                                     <td>{{ optional($ponto->sala)->nome ?? '-' }}</td>
                                     <td>
@@ -212,6 +216,51 @@
             e.preventDefault();
         }
     }, { passive: false });
+
+    // --- DESTAQUE CRUZADO: tabela <-> planta ---
+    (function () {
+        const marcador = id => document.querySelector(`#panzoom-target .ponto-marker[data-id="${id}"]`);
+        const linha = id => document.querySelector(`.ponto-row[data-id="${id}"]`);
+
+        function destacar(id, ligado) {
+            const m = marcador(id), l = linha(id);
+            if (m) m.classList.toggle('is-destaque', ligado);
+            if (l) l.classList.toggle('table-warning', ligado);
+        }
+
+        // Centraliza a planta no marcador, com zoom
+        function localizar(id) {
+            const m = marcador(id);
+            if (!m || !panzoom || m.style.display === 'none') return;
+            const escala = Math.max(panzoom.getScale(), 3);
+            panzoom.zoom(escala, { animate: false });
+            requestAnimationFrame(() => {
+                const s = panzoom.getScale();
+                const alvo = panzoomTarget.getBoundingClientRect();
+                const icone = (m.querySelector('.marker-icone') || m).getBoundingClientRect();
+                const mx = (icone.left + icone.width / 2 - alvo.left) / s;
+                const my = (icone.top + icone.height / 2 - alvo.top) / s;
+                panzoom.pan(viewport.clientWidth / (2 * s) - mx, viewport.clientHeight / (2 * s) - my, { animate: true });
+            });
+            viewport.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            destacar(id, true);
+            setTimeout(() => destacar(id, false), 2500);
+        }
+
+        document.querySelectorAll('.ponto-row').forEach(l => {
+            l.addEventListener('mouseenter', () => destacar(l.dataset.id, true));
+            l.addEventListener('mouseleave', () => destacar(l.dataset.id, false));
+            l.addEventListener('click', () => localizar(l.dataset.id));
+        });
+        document.querySelectorAll('#panzoom-target .ponto-marker').forEach(m => {
+            m.addEventListener('mouseenter', () => destacar(m.dataset.id, true));
+            m.addEventListener('mouseleave', () => destacar(m.dataset.id, false));
+            m.addEventListener('click', () => {
+                const l = linha(m.dataset.id);
+                if (l) l.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+    })();
 
     // --- LÓGICA DE FILTRAGEM POR TIPO DE PORTA ---
     document.addEventListener('DOMContentLoaded', function () {

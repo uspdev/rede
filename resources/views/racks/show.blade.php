@@ -62,13 +62,9 @@
                                                 <a href="{{ route('equipamentos.edit', ['equipamento' => $equipamento]) }}" class="btn btn-warning btn-sm">
                                                     Editar
                                                 </a>
-                                                <form action="{{ route('equipamentos.destroy', ['equipamento' => $equipamento]) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir este equipamento?')">
-                                                        Excluir
-                                                    </button>
-                                                </form>
+                                                <a href="{{ route('equipamentos.excluir', ['equipamento' => $equipamento]) }}" class="btn btn-danger btn-sm">
+                                                    Excluir
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
@@ -122,13 +118,9 @@
                                                 <a href="{{ route('patch-panels.edit', ['patchPanel' => $patchPanel]) }}" class="btn btn-warning btn-sm">
                                                     Editar
                                                 </a>
-                                                <form action="{{ route('patch-panels.destroy', ['patchPanel' => $patchPanel]) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir este patch panel?')">
-                                                        Excluir
-                                                    </button>
-                                                </form>
+                                                <a href="{{ route('patch-panels.excluir', ['patchPanel' => $patchPanel]) }}" class="btn btn-danger btn-sm">
+                                                    Excluir
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
