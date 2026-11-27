@@ -21,6 +21,7 @@
           <label class="form-label">Quantidade de Portas *</label>
           <input type="number" name="qtde_portas" class="form-control" value="{{ old('qtde_portas') }}" min="1">
         </div>
+        @include('modelo-switches.partials.numeracao')
         <div class="mb-3 form-check">
           <input class="form-check-input" type="checkbox" value="1" name="poe" id="poe" @checked(old('poe'))>
           <label class="form-check-label" for="poe">

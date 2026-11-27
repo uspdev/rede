@@ -143,7 +143,14 @@
         </div>
 
         <!-- Seção dos desenhos -->
-        <div class="row mt-4">
+        <div class="net-toolbar mt-4" id="net-toolbar">
+            <button type="button" class="btn btn-sm btn-outline-primary" id="net-toggle">
+                <i class="fas fa-link"></i> Conectar portas
+            </button>
+            <span class="net-hint" id="net-hint"></span>
+            <span class="net-sel-chip" id="net-sel-chip"></span>
+        </div>
+        <div class="row" id="net-diagramas">
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header bg-light">
@@ -165,6 +172,7 @@
                 </div>
             </div>
         </div>
+        @include('racks.partials.conexoes')
     </div>
 </div>
 

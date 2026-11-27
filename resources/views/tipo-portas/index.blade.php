@@ -21,6 +21,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Nome</th>
+                            <th>Cor</th>
                             <th width="150px">Ações</th>
                         </tr>
                     </thead>
@@ -28,6 +29,14 @@
                         @foreach($tipoPortas as $tipoPorta)
                         <tr>
                             <td>{{ $tipoPorta->nome }}</td>
+                            <td>
+                                @if($tipoPorta->cor)
+                                    <span class="d-inline-block border rounded align-middle me-1" style="width: 24px; height: 24px; background-color: {{ $tipoPorta->cor }};" title="{{ $tipoPorta->cor }}"></span>
+                                    <code class="align-middle">{{ $tipoPorta->cor }}</code>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
                             <td>
                                 <div class="btn-group">
                                     <a href="{{ route('tipo-portas.edit', ['tipoPorta' => $tipoPorta]) }}" class="btn btn-warning btn-sm">Editar</a>

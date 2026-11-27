@@ -10,6 +10,7 @@ use App\Http\Controllers\PatchPanelController;
 use App\Http\Controllers\TipoPortaController;
 use App\Http\Controllers\PlantaController;
 use App\Http\Controllers\ModeloSwitchController;
+use App\Http\Controllers\ConexaoController;
 
 Route::get('/',[IndexController::class,'index'])->name('home');
 
@@ -102,3 +103,7 @@ Route::delete('/patch-panels/{patchPanel}/desvincular-sala/{sala}', [PatchPanelC
 // Editar tipo de porta patch panels
 Route::get('/patch-panels/{patchPanel}/editar-tipo-porta/{sala}', [PatchPanelController::class, 'editarTipoPorta'])->name('patch-panels.editar-tipo-porta');
 Route::put('/patch-panels/{patchPanel}/atualizar-tipo-porta/{sala}', [PatchPanelController::class, 'atualizarTipoPorta'])->name('patch-panels.atualizar-tipo-porta');
+
+// Conexões (patch cords) entre portas de switch e portas de patch panel
+Route::post('/conexoes', [ConexaoController::class, 'store'])->name('conexoes.store');
+Route::delete('/conexoes/{conexao}', [ConexaoController::class, 'destroy'])->name('conexoes.destroy');

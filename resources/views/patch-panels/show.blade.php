@@ -33,12 +33,16 @@
                                 <th>Status</th>
                                 <th>Local Vinculado</th>
                                 <th>Tipo de Porta</th>
+                                <th>Switch</th>
                                 <th>Comentário</th>
                                 <th>Tamanho</th>
                                 <th>Planta</th>
                                 <th width="180px">Ações</th>
                             </tr>
                         </thead>
+                        @php
+                            $conexoesPorPorta = $patchPanel->conexoes()->with('equipamento')->get()->keyBy('porta_patch_panel');
+                        @endphp
                         <tbody>
                             @foreach(range(1, $patchPanel->qtde_portas) as $porta)
                             @php
@@ -67,7 +71,19 @@
                                 </td>
                                 <td>
                                     @if($tipoPorta)
-                                        {{ $tipoPorta->nome }}
+                                        @if($tipoPorta->cor)
+                                            <span class="d-inline-block border rounded align-middle me-1" style="width: 18px; height: 18px; background-color: {{ $tipoPorta->cor }};" title="{{ $tipoPorta->cor }}"></span>
+                                        @endif
+                                        <span class="align-middle">{{ $tipoPorta->nome }}</span>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td>
+                                    @php $conexao = $conexoesPorPorta->get($porta); @endphp
+                                    @if($conexao)
+                                        <i class="fas fa-link text-success"></i>
+                                        {{ $conexao->equipamento?->hostname }} · porta {{ $conexao->porta_equipamento }}
                                     @else
                                         -
                                     @endif

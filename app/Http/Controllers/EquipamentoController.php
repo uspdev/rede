@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Equipamento;
 use App\Models\ModeloSwitch;
+use App\Models\PatchPanelSala;
 use App\Models\Rack;
 use App\Http\Requests\EquipamentoRequest;
 use Illuminate\Http\Request;
@@ -39,7 +40,20 @@ class EquipamentoController extends Controller
     public function show(Equipamento $equipamento)
     {
         Gate::authorize('admin');
-        return view('equipamentos.show', ['equipamento' => $equipamento]);
+
+        $conexoes = $equipamento->conexoes()->with('patchPanel.rack')->get();
+
+        // Sala/tipo vinculados a cada porta de patch panel conectada
+        $vinculos = PatchPanelSala::with('sala.predio', 'tipoPorta')
+            ->whereIn('patch_panel_id', $conexoes->pluck('patch_panel_id')->unique())
+            ->get()
+            ->keyBy(fn ($v) => $v->patch_panel_id . ':' . $v->porta);
+
+        return view('equipamentos.show', [
+            'equipamento' => $equipamento,
+            'conexoesPorPorta' => $conexoes->keyBy('porta_equipamento'),
+            'vinculos' => $vinculos,
+        ]);
     }
 
     public function edit(Equipamento $equipamento)

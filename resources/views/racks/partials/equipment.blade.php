@@ -1,150 +1,190 @@
-<script src="https://d3js.org/d3.v7.min.js"></script>
+@php
+    $equipamentosDesenho = $rack->equipamentos()->with('modeloSwitch')->get();
+
+    /**
+     * Calcula a posição (linha/coluna) de cada porta no painel frontal.
+     * Blocos de até 48 portas, cada bloco com 2 linhas; colunas agrupadas de 6 em 6.
+     *  - vertical:   1/2, 3/4, 5/6... (ímpares em cima)
+     *  - horizontal: 1..metade em cima, o restante embaixo
+     */
+    $layoutPortas = function (int $total, string $numeracao) {
+        $blocos = [];
+        foreach (array_chunk(range(1, max($total, 1)), 48) as $bloco) {
+            $cols = (int) ceil(count($bloco) / 2);
+            $grupos = [];
+            foreach ($bloco as $k => $porta) {
+                if ($numeracao === 'vertical') {
+                    $linha = $k % 2;
+                    $col = intdiv($k, 2);
+                } else {
+                    $linha = intdiv($k, $cols);
+                    $col = $k % $cols;
+                }
+                $grupos[intdiv($col, 6)][] = [
+                    'porta' => $porta,
+                    'linha' => $linha + 1,
+                    'col' => $col % 6 + 1,
+                ];
+            }
+            ksort($grupos);
+            $blocos[] = $grupos;
+        }
+        return $blocos;
+    };
+@endphp
+
 <style>
-    .equipment-port {
-        stroke: black;
+    .sw-wrap { overflow-x: auto; padding-bottom: 4px; }
+    .sw-rack { min-width: 540px; display: flex; flex-direction: column; gap: 14px; }
+
+    .sw-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .sw-title a { color: inherit; text-decoration: none; }
+    .sw-title a:hover { text-decoration: underline; }
+    .sw-title small { font-weight: 400; color: #6c757d; }
+
+    .sw-chassis {
+        display: flex;
+        align-items: stretch;
+        background: linear-gradient(180deg, #4b5560 0%, #2f363d 40%, #262b31 100%);
+        border: 1px solid #14171a;
+        border-radius: 3px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 2px 4px rgba(0,0,0,.25);
     }
-    .equipment-label {
-        font-size: 14px;
-        font-weight: bold;
+    .sw-ear {
+        width: 18px;
+        flex: 0 0 18px;
+        background: linear-gradient(180deg, #6a737c, #444b52);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: center;
     }
-    .equipment-legend {
-        font-size: 12px;
+    .sw-ear:first-child { border-right: 1px solid #14171a; border-radius: 3px 0 0 3px; }
+    .sw-ear:last-child  { border-left: 1px solid #14171a;  border-radius: 0 3px 3px 0; margin-left: auto; }
+    .sw-ear span {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #d5dade, #6c737a);
+        box-shadow: inset 0 0 1px #000;
     }
-    .equipment-tooltip {
-        position: absolute;
-        background: rgba(0,0,0,0.8);
-        color: #fff;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.2s;
+
+    .sw-brand {
+        flex: 0 0 52px;
+        padding: 6px 6px;
+        border-right: 1px solid rgba(0,0,0,.4);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        color: #dfe4e8;
     }
+    .sw-model { font: 700 9px/1.1 system-ui, sans-serif; letter-spacing: .02em; word-break: break-word; }
+    .sw-poe { font: 700 7px/1 system-ui, sans-serif; color: #1b1e21; background: #ffc107; border-radius: 2px; padding: 1px 3px; align-self: flex-start; margin-top: 3px; display: inline-block; }
+    .sw-leds { display: flex; gap: 6px; margin-top: 6px; }
+    .sw-led { display: flex; flex-direction: column; align-items: center; gap: 1px; font: 600 6px/1 system-ui, sans-serif; color: #aab2b9; }
+    .sw-led i { width: 5px; height: 5px; border-radius: 50%; background: #2ecc71; box-shadow: 0 0 4px #2ecc71; display: block; }
+
+    .sw-body { padding: 5px 8px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+    .sw-block { display: flex; gap: 8px; }
+    .sw-group { display: grid; grid-template-columns: repeat(6, 17px); grid-template-rows: auto auto; gap: 2px 2px; align-content: start; }
+
+    .sw-port { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+    .sw-port.bottom { flex-direction: column-reverse; }
+    .sw-num { font: 600 7px/1 system-ui, sans-serif; color: #cfd4d9; display: flex; align-items: center; gap: 2px; }
+    .sw-num i { width: 4px; height: 4px; border-radius: 50%; background: #3d444b; display: inline-block; }
+    .sw-jack {
+        width: 100%;
+        aspect-ratio: 1 / 0.85;
+        border-radius: 2px;
+        padding: 2px;
+        background: linear-gradient(180deg, #b8bec4, #8a9198);
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,.45);
+        transition: transform .1s, box-shadow .1s;
+    }
+    .sw-jack::before {
+        /* abertura RJ45: trava em cima nas portas de cima, embaixo nas de baixo */
+        content: "";
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: #0b0c0d;
+        clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 72%, 72% 100%, 28% 100%, 28% 72%, 0 72%);
+    }
+    .sw-port.top .sw-jack::before { transform: rotate(180deg); }
+    .sw-port:hover .sw-jack { transform: scale(1.15); }
 </style>
 
-<div class="equipment-tooltip" id="equipment-tooltip"></div>
-<svg id="equipment-rack" width="100%" height="{{ $rack->equipamentos->sum(fn($e) => ceil(($e->modeloSwitch?->qtde_portas ?? 24)/24) * 70 + 30) + 50 }}"></svg>
+@if($equipamentosDesenho->isEmpty())
+    <div class="text-muted small">Nenhum equipamento para desenhar.</div>
+@else
+<div class="sw-wrap">
+    <div class="sw-rack">
+        @foreach($equipamentosDesenho as $equipamento)
+            @php
+                $modelo = $equipamento->modeloSwitch;
+                $totalPortas = (int) ($modelo?->qtde_portas ?: 24);
+                $blocos = $layoutPortas($totalPortas, $modelo?->numeracao_portas ?? 'horizontal');
+            @endphp
+            <div class="sw-unit" data-dev="{{ $equipamento->id }}">
+                <div class="sw-title">
+                    <span>
+                        @can('admin')
+                            <a href="{{ route('equipamentos.show', ['equipamento' => $equipamento]) }}">{{ $equipamento->hostname }}</a>
+                        @else
+                            {{ $equipamento->hostname }}
+                        @endcan
+                    </span>
+                    <small>
+                        {{ $equipamento->ip ?: 'sem IP' }} · {{ $totalPortas }} portas
+                    </small>
+                </div>
+                <div class="sw-chassis">
+                    <div class="sw-ear"><span></span>@if(count($blocos) > 1)<span></span>@endif</div>
+                    <div class="sw-brand">
+                        <div>
+                            <div class="sw-model">{{ $modelo?->fabricante }} {{ $modelo?->nome ?? 'Sem modelo' }}</div>
+                            @if($modelo?->poe)
+                                <span class="sw-poe">PoE</span>
+                            @endif
+                        </div>
+                        <div class="sw-leds">
+                            <span class="sw-led"><i></i>PWR</span>
+                            <span class="sw-led"><i></i>SYS</span>
+                        </div>
+                    </div>
+                    <div class="sw-body">
+                        @foreach($blocos as $grupos)
+                            <div class="sw-block">
+                                @foreach($grupos as $grupo)
+                                    <div class="sw-group">
+                                        @foreach($grupo as $p)
+                                            <div class="sw-port net-port {{ $p['linha'] === 1 ? 'top' : 'bottom' }}"
+                                                 style="grid-row: {{ $p['linha'] }}; grid-column: {{ $p['col'] }};"
+                                                 data-kind="sw"
+                                                 data-dev="{{ $equipamento->id }}"
+                                                 data-porta="{{ $p['porta'] }}"
+                                                 data-label="{{ $equipamento->hostname }}"
+                                                 data-tip="{{ $equipamento->hostname }} · porta {{ $p['porta'] }}">
+                                                <span class="sw-num"><i></i>{{ $p['porta'] }}</span>
+                                                <span class="sw-jack"></span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="sw-ear"><span></span>@if(count($blocos) > 1)<span></span>@endif</div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
 
-<script>
-    const equipmentSvg = d3.select("#equipment-rack");
-    const equipmentTooltip = d3.select("#equipment-tooltip");
-
-    function drawEquipment(svg, x, y, hostname, model, id, totalPorts) {
-        const equipmentWidth = 480;
-        const equipmentHeight = Math.ceil(totalPorts/24) * 40;
-        const portsPerRow = 24;
-
-        // Fundo do equipamento
-        svg.append("rect")
-            .attr("x", x)
-            .attr("y", y)
-            .attr("width", equipmentWidth)
-            .attr("height", equipmentHeight)
-            .attr("fill", "#2c3e50")
-            .attr("rx", 5)
-            .attr("ry", 5);
-
-        // Label do equipamento
-        svg.append("text")
-            .attr("x", x + equipmentWidth / 2)
-            .attr("y", y - 10)
-            .attr("text-anchor", "middle")
-            .attr("class", "equipment-label")
-            .text(hostname);
-
-        // Modelo do equipamento
-        svg.append("text")
-            .attr("x", x + equipmentWidth / 2)
-            .attr("y", y - 25)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "10px")
-            .attr("fill", "#7f8c8d")
-            .text(model);
-
-        const ports = d3.range(totalPorts);
-        
-        // Todas as portas começam como livres (cinza)
-        // Quando o sistema de vínculo estiver pronto, adicionar lógica similar ao patch panel
-        const portas_ocupadas = []; // Array vazio por enquanto
-        const portas_ocupadas_int = portas_ocupadas.map(num => Number(num));
-
-        svg.selectAll(`.equipment-port-${id}`)
-            .data(ports)
-            .enter()
-            .append("rect")
-            .attr("x", (d, i) => x + 10 + (i % portsPerRow) * 19)
-            .attr("y", (d, i) => y + 10 + Math.floor(i / portsPerRow) * 40)
-            .attr("width", 18)
-            .attr("height", 18)
-            .attr("fill", d => (portas_ocupadas_int.includes(d) ? "green" : "gray"))
-            .attr("class", "equipment-port")
-            .on("mouseover", function(event, d) {
-                const status = portas_ocupadas_int.includes(d) ? "Porta em uso" : "Porta livre";
-                const tooltipText = `Porta ${d + 1} - ${status}`;
-                equipmentTooltip.style("opacity", 1).text(tooltipText);
-            })
-            .on("mousemove", function(event) {
-                equipmentTooltip.style("left", (event.pageX + 10) + "px").style("top", (event.pageY - 200) + "px");
-            })
-            .on("mouseout", function() {
-                equipmentTooltip.style("opacity", 0);
-            });
-
-        // Numerar portas
-        svg.selectAll(`.equipment-port-label-${id}`)
-            .data(ports)
-            .enter()
-            .append("text")
-            .attr("x", (d, i) => x + 19 + (i % portsPerRow) * 19)
-            .attr("y", (d, i) => y + 23 + Math.floor(i / portsPerRow) * 40)
-            .attr("text-anchor", "middle")
-            .attr("alignment-baseline", "middle")
-            .attr("font-size", "8px")
-            .attr("fill", "white")
-            .text(d => d + 1);
-    }
-
-    // Legenda para equipamentos
-    const equipmentLegendData = [
-        { color: "green", text: "Porta em uso" },
-        { color: "gray", text: "Porta livre" }
-    ];
-
-    const equipmentLegend = equipmentSvg.selectAll(".equipment-legend")
-        .data(equipmentLegendData)
-        .enter()
-        .append("g")
-        .attr("class", "equipment-legend")
-        .attr("transform", (d, i) => `translate(400, ${30 + i * 25})`);
-
-    equipmentLegend.append("rect")
-        .attr("width", 14)
-        .attr("height", 14)
-        .attr("fill", d => d.color)
-        .attr("stroke", "black");
-
-    equipmentLegend.append("text")
-        .attr("x", 20)
-        .attr("y", 11)
-        .text(d => d.text);
-
-    // Desenhar equipamentos
-    @php $equipmentY = 50; @endphp
-    @foreach($rack->equipamentos as $equipamento)
-        @php $portCount = $equipamento->modeloSwitch?->qtde_portas ?? 24; @endphp
-        drawEquipment(
-            equipmentSvg, 
-            20, 
-            {{ $equipmentY }}, 
-            '{{ $equipamento->hostname }}', 
-            '{{ $equipamento->modeloSwitch?->nome ?? 'Sem modelo' }}', 
-            {{ $equipamento->id }}, 
-            {{ $portCount }}
-        );
-        
-        @php 
-            $equipmentY += ceil($portCount/24) * 70 + 30; // Espaço extra entre equipamentos
-        @endphp
-    @endforeach
-</script>
+<div class="net-legend">
+    <span class="net-legend-item">
+        <span class="net-legend-led" style="background: #2ecc71;"></span>Conectada a um patch panel
+    </span>
+    <span class="net-legend-item">
+        <span class="sw-poe" style="margin: 0;">PoE</span>Modelo com PoE
+    </span>
+</div>
+@endif

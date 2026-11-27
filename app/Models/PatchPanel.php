@@ -13,6 +13,11 @@ class PatchPanel extends Model
         'user_id',
     ];
 
+    public function conexoes()
+    {
+        return $this->hasMany(Conexao::class);
+    }
+
     public function rack()
     {
         return $this->belongsTo(Rack::class);

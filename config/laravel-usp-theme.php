@@ -13,14 +13,20 @@ $menu = [
         'can' => 'admin',
     ],
     [
-        'text' => '<i class="fas fa-plug"></i> Tipos de Porta',
-        'url' => config('app.url') . '/tipo-portas',
+        'text' => '<i class="fas fa-tools"></i> Administração',
         'can' => 'admin',
-    ],
-    [
-        'text' => '<i class="fas fa-microchip"></i> Modelos de Switches',
-        'url' => config('app.url') . '/modelo-switches',
-        'can' => 'admin',
+        'submenu' => [
+            [
+                'text' => '<i class="fas fa-plug"></i> Tipos de Porta',
+                'url' => config('app.url') . '/tipo-portas',
+                'can' => 'admin',
+            ],
+            [
+                'text' => '<i class="fas fa-microchip"></i> Modelos de Switches',
+                'url' => config('app.url') . '/modelo-switches',
+                'can' => 'admin',
+            ],
+        ],
     ],
 ];
 
@@ -28,13 +34,6 @@ $right_menu = [
     [
         // menu utilizado para views da biblioteca senhaunica-socialite.
         'key' => 'senhaunica-socialite',
-    ],
-    [
-        'text' => '<i class="fas fa-cog"></i>',
-        'title' => 'Configurações',
-        'target' => '_blank',
-        'url' => config('app.url') . '/item1',
-        'align' => 'right',
     ],
 ];
 

@@ -14,6 +14,7 @@
                         <th>Fabricante</th>
                         <th>Modelo</th>
                         <th>Portas</th>
+                        <th>Numeração</th>
                         <th>PoE</th>
                         <th width="220px">Ações</th>
                     </tr>
@@ -24,6 +25,7 @@
                         <td><strong>{{ $modelo->fabricante }}</strong></td>
                         <td>{{ $modelo->nome }}</td>
                         <td>{{ $modelo->qtde_portas }}</td>
+                        <td>{{ ucfirst($modelo->numeracao_portas ?? 'horizontal') }}</td>
                         <td>{!! $modelo->poe ? '<i class="fa fa-check" aria-hidden="true"></i>' : '' !!}</td>
                         <td>
                             <a href="/modelo-switches/{{ $modelo->id }}/edit" class="btn btn-warning btn-sm">Editar</a>

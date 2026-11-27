@@ -16,6 +16,7 @@ class ModeloSwitch extends Model
         'fabricante',
         'qtde_portas',
         'poe',
+        'numeracao_portas',
         'user_id',
     ];
 

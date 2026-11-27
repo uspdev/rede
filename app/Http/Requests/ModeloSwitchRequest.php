@@ -27,6 +27,7 @@ class ModeloSwitchRequest extends FormRequest
             'fabricante' => 'required|string|max:255',
             'qtde_portas' => 'required|integer|min:1|max:96',
             'poe' => 'nullable|boolean',
+            'numeracao_portas' => 'required|in:horizontal,vertical',
         ];
     }
 

@@ -25,6 +25,11 @@ class Equipamento extends Model
         return $this->hasMany(Porta::class);
     }
 
+    public function conexoes()
+    {
+        return $this->hasMany(Conexao::class);
+    }
+
     public function rack()
     {
         return $this->belongsTo(Rack::class);
