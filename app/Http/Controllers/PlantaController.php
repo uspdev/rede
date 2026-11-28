@@ -42,6 +42,7 @@ class PlantaController extends Controller
 
         $planta = new Planta();
         $planta->predio_id = $request->input('predio_id');
+        $planta->public = $request->boolean('public');
         $planta->path = $path;
         $planta->name = $request->input('name');
         $planta->original_name = $file->getClientOriginalName();
@@ -77,6 +78,7 @@ class PlantaController extends Controller
 
         $planta->name = $request->input('name');
         $planta->predio_id = $request->input('predio_id');
+        $planta->public = $request->boolean('public');
 
         if ($request->hasFile('planta')) {
             if ($planta->path && Storage::exists($planta->path)) {
@@ -103,15 +105,19 @@ class PlantaController extends Controller
             ->with('success', 'Planta e permissões dos pontos atualizadas com sucesso!');
     }
 
-    /** Imagem da planta: pública (usada pela visualização e pela impressão) */
     public function show(Predio $predio, Planta $planta)
     {
+        if (!$planta->public) {
+            Gate::authorize('admin');
+        }
         return Storage::download($planta->path, $planta->original_name);
     }
 
-    /** Visualização da planta: pública, só leitura (anônimo pode ver) */
     public function showPublic(Planta $planta)
     {
+        if (!$planta->public) {
+            Gate::authorize('admin');
+        }
 
         $planta->load('predio');
 
@@ -345,9 +351,11 @@ class PlantaController extends Controller
      * Versão para impressão: o navegador desenha a planta (SVG vetorial) e as marcações
      * por cima, usando as mesmas coordenadas em % salvas no banco.
      */
-    /** Versão para impressão / PDF: pública, só leitura (anônimo pode ver) */
     public function imprimir(Planta $planta)
     {
+        if (!$planta->public) {
+            Gate::authorize('admin');
+        }
 
         $planta->load('predio');
 

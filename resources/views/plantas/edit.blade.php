@@ -37,7 +37,22 @@
                     Deixe em branco se desejar mantê-lo.
                 </div>
             </div>
-            <div class="form-text mb-3"><i class="fas fa-globe"></i> A visualização e a impressão desta planta são públicas (qualquer pessoa pode ver, sem login; só admin altera).</div>
+            <!-- Campo: Tornar Planta Pública -->
+            <div class="mb-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" 
+                           type="checkbox" 
+                           role="switch" 
+                           id="public" 
+                           name="public" 
+                           value="1" 
+                           {{ old('public', $planta->public) ? 'checked' : '' }}>
+                    <label class="form-check-label fw-semibold" for="public">
+                        Deixar planta pública
+                    </label>
+                </div>
+                <div class="form-text">Permite a visualização do mapa e marcadores sem exigência de login.</div>
+            </div>
 
             <hr class="my-4">
 
