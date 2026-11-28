@@ -17,8 +17,13 @@ $menu = [
         'can' => 'admin',
         'submenu' => [
             [
-                'text' => '<i class="fas fa-plug"></i> Tipos de Porta',
+                'text' => '<i class="fas fa-plug"></i> Tipos de Porta de Patch Panel',
                 'url' => config('app.url') . '/tipo-portas',
+                'can' => 'admin',
+            ],
+            [
+                'text' => '<i class="fas fa-ethernet"></i> Tipos de Porta de Switch',
+                'url' => config('app.url') . '/tipo-portas-switch',
                 'can' => 'admin',
             ],
             [

@@ -6,7 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Rack extends Model
 {
-    protected $fillable = ['nome', 'predio_id', 'user_id'];
+    protected $fillable = ['nome', 'predio_id', 'telecom_room_id', 'user_id'];
+
+    protected static function booted(): void
+    {
+        // O prédio do rack é sempre o prédio da TR em que ele está
+        static::saving(function (Rack $rack) {
+            if ($rack->telecom_room_id && $rack->isDirty('telecom_room_id')) {
+                $rack->predio_id = TelecomRoom::whereKey($rack->telecom_room_id)->value('predio_id');
+            }
+        });
+    }
+
+    public function telecomRoom()
+    {
+        return $this->belongsTo(TelecomRoom::class);
+    }
 
     public function predio()
     {

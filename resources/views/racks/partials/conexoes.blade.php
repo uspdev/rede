@@ -16,6 +16,8 @@
     // Para o formulário de vínculo da porta do patch panel
     $salasPredio = \App\Models\Sala::where('predio_id', $rack->predio_id)->orderBy('nome')->get(['id', 'nome', 'descricao']);
     $tiposPortaForm = \App\Models\TipoPorta::orderBy('nome')->get(['id', 'nome', 'cor']);
+    // Para o formulário de tipo da porta do switch
+    $tiposPortaSwitchForm = \App\Models\TipoPortaSwitch::orderBy('nome')->get(['id', 'nome', 'cor', 'vlan']);
 @endphp
 
 <style>
@@ -52,7 +54,7 @@
     .net-port.is-hl .sw-jack,
     .net-port.is-hl .pp-jack { transform: scale(1.3); box-shadow: 0 0 0 2px #ffc107, 0 0 8px #ffc107; position: relative; z-index: 2; }
 
-    .pp-port.net-port { cursor: pointer; }
+    .pp-port.net-port, .sw-port.net-port { cursor: pointer; }
 
     /* Modo conectar */
     .net-on .net-port { cursor: pointer; }
@@ -69,12 +71,25 @@
     .sw-unit .sw-chassis { cursor: pointer; transition: box-shadow .15s; }
     .sw-unit .sw-chassis:hover { box-shadow: 0 0 0 2px rgba(13,110,253,.35), 0 2px 4px rgba(0,0,0,.25); }
     .sw-unit.is-cabos .sw-chassis { box-shadow: 0 0 0 3px #0d6efd, 0 2px 8px rgba(13,110,253,.35); }
-    .sw-unit.is-cabos .sw-title span::after { content: " · mostrando cabos"; font-weight: 400; color: #0d6efd; font-size: 12px; }
+    .sw-unit.is-cabos .sw-title span::after { content: " · mostrando patch cords"; font-weight: 400; color: #0d6efd; font-size: 12px; }
+    .sw-ver-cabos .rot-ocultar { display: none; }
+    .sw-unit.is-cabos .sw-ver-cabos { background: #0d6efd; color: #fff; }
+    .sw-unit.is-cabos .sw-ver-cabos .rot-mostrar { display: none; }
+    .sw-unit.is-cabos .sw-ver-cabos .rot-ocultar { display: inline; }
     .net-cabos { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: visible; }
     .net-cabos path.halo { fill: none; stroke: rgba(0,0,0,.55); stroke-width: 5; stroke-linecap: round; }
     .net-cabos path.fio  { fill: none; stroke-width: 2.5; stroke-linecap: round; }
     .net-cabos circle { stroke: #fff; stroke-width: 1.5; }
     .net-cabos path.fio { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: net-draw .5s ease-out forwards; }
+    /* cabo provisório enquanto escolhe a segunda porta */
+    .net-cabos path.elastico { fill: none; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 7 5; opacity: .9; animation: net-formiga .6s linear infinite; }
+    .net-cabos path.elastico-halo { fill: none; stroke: rgba(0,0,0,.35); stroke-width: 5; stroke-linecap: round; }
+    .net-cabos circle.elastico-ponta { stroke: #fff; stroke-width: 1.5; }
+    @keyframes net-formiga { to { stroke-dashoffset: -12; } }
+    /* faixa invisível sobre o cabo para o hover */
+    .net-cabos path.alvo { fill: none; stroke: transparent; stroke-width: 10; pointer-events: stroke; cursor: help; }
+    .net-cabos g.cabo.hover path.fio { stroke-width: 4.5; }
+    .net-cabos g.cabo.hover path.halo { stroke-width: 7.5; }
     @keyframes net-draw { to { stroke-dashoffset: 0; } }
 
     /* Modal de vínculo da porta do patch panel */
@@ -129,6 +144,7 @@
 </style>
 
 <div class="net-tooltip" id="net-tooltip"></div>
+<div class="net-tooltip" id="net-tooltip-2"></div>
 
 <div class="pm-fundo" id="pm-fundo" role="dialog" aria-modal="true" aria-labelledby="pm-titulo">
     <div class="pm-caixa">
@@ -142,9 +158,9 @@
         <div class="pm-corpo">
             <div class="pm-info" id="pm-switch" style="display: none;"></div>
             <div>
-                <label class="rot">Sala *</label>
+                <label class="rot">Sala/Ambiente *</label>
                 <div class="pm-salas">
-                    <input type="search" id="pm-busca" placeholder="Buscar sala…" autocomplete="off">
+                    <input type="search" id="pm-busca" placeholder="Buscar sala/ambiente…" autocomplete="off">
                     <ul id="pm-lista-salas">
                         @foreach($salasPredio as $sala)
                             <li data-id="{{ $sala->id }}" data-busca="{{ Str::lower($sala->nome . ' ' . $sala->descricao) }}">
@@ -154,7 +170,7 @@
                     </ul>
                 </div>
                 @if($salasPredio->isEmpty())
-                    <small class="text-muted">Nenhuma sala cadastrada neste prédio.</small>
+                    <small class="text-muted">Nenhuma sala/ambiente cadastrada neste prédio.</small>
                 @endif
             </div>
             <div>
@@ -186,6 +202,38 @@
         </div>
     </div>
 </div>
+<div class="pm-fundo" id="ps-fundo" role="dialog" aria-modal="true" aria-labelledby="ps-titulo">
+    <div class="pm-caixa">
+        <div class="pm-cab">
+            <div>
+                <h3 id="ps-titulo">Porta do switch</h3>
+                <small>Tipo da porta do switch</small>
+            </div>
+            <button type="button" class="pm-fechar" id="ps-fechar" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="pm-corpo">
+            <div class="pm-info" id="ps-pp" style="display: none;"></div>
+            <div>
+                <label class="rot">Tipo de porta de switch</label>
+                <div class="pm-tipos" id="ps-tipos">
+                    <button type="button" data-id=""><i style="background: transparent;"></i>Sem tipo</button>
+                    @foreach($tiposPortaSwitchForm as $tipo)
+                        <button type="button" data-id="{{ $tipo->id }}"><i style="background: {{ $tipo->cor ?: 'transparent' }};"></i>{{ $tipo->nome }}@if($tipo->vlan) · VLAN {{ $tipo->vlan }}@endif</button>
+                    @endforeach
+                </div>
+                @if($tiposPortaSwitchForm->isEmpty())
+                    <small class="text-muted">Nenhum tipo cadastrado. <a href="{{ route('tipo-portas-switch.create') }}">Cadastrar tipo de porta de switch</a>.</small>
+                @endif
+            </div>
+            <div class="pm-erro" id="ps-erro"></div>
+        </div>
+        <div class="pm-rodape">
+            <span class="esp"></span>
+            <button type="button" class="btn btn-sm btn-secondary" id="ps-cancelar">Cancelar</button>
+            <button type="button" class="btn btn-sm btn-primary" id="ps-salvar">Salvar</button>
+        </div>
+    </div>
+</div>
 <div class="net-toast" id="net-toast"></div>
 
 <script>
@@ -200,10 +248,12 @@
     const hint = document.getElementById('net-hint');
     const chip = document.getElementById('net-sel-chip');
     const tip = document.getElementById('net-tooltip');
+    const tip2 = document.getElementById('net-tooltip-2');
+    let tipNoCabo = false;
     const toast = document.getElementById('net-toast');
     if (!root) return;
 
-    const HINT_OFF = 'Clique numa porta do patch panel para vincular a uma sala. Clique num switch para ver os cabos.';
+    const HINT_OFF = 'Clique numa porta do patch panel para vincular a uma sala/ambiente, ou numa porta do switch para definir o tipo. Use "Patch cords" (ou clique no chassi do switch) para ver os cabos.';
     const COR_CABO_PADRAO = '#5c7cfa'; // porta do patch panel sem sala vinculada
     const HINT_ON = 'Clique numa porta do switch e depois numa do patch panel (ou o contrário). Clique numa porta já conectada para desconectar. Esc para sair.';
 
@@ -264,6 +314,68 @@
         return { x: r.left + r.width / 2 - base.left, y: r.top + r.height / 2 - base.top };
     }
 
+    // ---------- Cabo "elástico" no modo conectar ----------
+    const svgTemp = document.createElementNS(SVGNS, 'svg');
+    svgTemp.setAttribute('class', 'net-cabos');
+    root.appendChild(svgTemp);
+
+    function corDaPorta(el) {
+        if (el.dataset.kind === 'sw') return el.dataset.tipoCor || COR_CABO_PADRAO;
+        return el.classList.contains('is-linked') ? getComputedStyle(el).getPropertyValue('--pp-cor').trim() || COR_CABO_PADRAO : COR_CABO_PADRAO;
+    }
+
+    function curva(a, b) {
+        // o cabo sai na vertical na direção da outra ponta, como um patch cord
+        const desce = b.y > a.y ? 1 : -1;
+        const k = Math.min(90, 25 + Math.abs(b.y - a.y) * 0.35 + Math.abs(b.x - a.x) * 0.08);
+        return `M${a.x},${a.y} C${a.x},${a.y + desce * k} ${b.x},${b.y - desce * k} ${b.x},${b.y}`;
+    }
+
+    function desenharElastico(destino) {
+        svgTemp.innerHTML = '';
+        if (!modo || !selecionada || !destino) return;
+        const a = centro(selecionada);
+        const cor = corDaPorta(selecionada);
+        const d = curva(a, destino);
+        const halo = document.createElementNS(SVGNS, 'path');
+        halo.setAttribute('d', d);
+        halo.setAttribute('class', 'elastico-halo');
+        const fio = document.createElementNS(SVGNS, 'path');
+        fio.setAttribute('d', d);
+        fio.setAttribute('class', 'elastico');
+        fio.setAttribute('stroke', cor);
+        svgTemp.append(halo, fio);
+        [a, destino].forEach(p => {
+            const c = document.createElementNS(SVGNS, 'circle');
+            c.setAttribute('cx', p.x);
+            c.setAttribute('cy', p.y);
+            c.setAttribute('r', 4);
+            c.setAttribute('fill', cor);
+            c.setAttribute('class', 'elastico-ponta');
+            svgTemp.appendChild(c);
+        });
+    }
+
+    root.addEventListener('mousemove', e => {
+        if (!modo || !selecionada) return;
+        // encaixa numa porta livre do outro lado; senão segue o mouse
+        const alvo = e.target.closest('.net-port');
+        if (alvo && alvo.dataset.kind !== selecionada.dataset.kind && !conexaoDe(alvo)) {
+            desenharElastico(centro(alvo));
+        } else {
+            const base = root.getBoundingClientRect();
+            desenharElastico({ x: e.clientX - base.left, y: e.clientY - base.top });
+        }
+    });
+    root.addEventListener('mouseleave', () => svgTemp.innerHTML = '');
+
+    // Mostra (sem alternar) os patch cords de um switch
+    function mostrarCabosDe(id) {
+        swCabos = id;
+        root.querySelectorAll('.sw-unit').forEach(u => u.classList.toggle('is-cabos', Number(u.dataset.dev) === id));
+        desenharCabos(true);
+    }
+
     function desenharCabos(animar) {
         svg.innerHTML = '';
         if (swCabos === null) return;
@@ -274,17 +386,22 @@
             const pp = portaEl('pp', c.pp, c.ppPorta);
             if (!sw || !pp) { foraDoRack++; return; }
             const a = centro(sw), b = centro(pp);
-            const cor = pp.classList.contains('is-linked')
-                ? getComputedStyle(pp).getPropertyValue('--pp-cor').trim()
-                : COR_CABO_PADRAO;
+            // Cor do patch cord: tipo da porta do switch > tipo da porta do patch panel > padrão
+            const cor = sw.dataset.tipoCor
+                || (pp.classList.contains('is-linked') ? getComputedStyle(pp).getPropertyValue('--pp-cor').trim() : '')
+                || COR_CABO_PADRAO;
             // O cabo sai da porta na vertical (para cima nas portas de cima, para baixo nas de baixo),
             // como um patch cord de verdade, e chega ao patch panel do mesmo jeito.
-            const saidaSw = sw.classList.contains('bottom') ? 1 : -1;
+            // Patch panel acima do switch (layout padrão): o cabo sobe do switch e entra por baixo no patch panel
+            const ppAcima = b.y < a.y;
+            const saidaSw = ppAcima ? -1 : (sw.classList.contains('bottom') ? 1 : -1);
             const linhaPP = pp.closest('.pp-row');
-            const saidaPP = linhaPP && linhaPP.previousElementSibling ? 1 : -1;
+            const saidaPP = ppAcima ? 1 : (linhaPP && linhaPP.previousElementSibling ? 1 : -1);
             const alcance = Math.min(90, 30 + Math.abs(b.x - a.x) * 0.12 + (i % 5) * 6);
             const d = `M${a.x},${a.y} C${a.x},${a.y + saidaSw * alcance} ${b.x},${b.y + saidaPP * alcance} ${b.x},${b.y}`;
 
+            const grupo = document.createElementNS(SVGNS, 'g');
+            grupo.setAttribute('class', 'cabo');
             const halo = document.createElementNS(SVGNS, 'path');
             halo.setAttribute('d', d);
             halo.setAttribute('class', 'halo');
@@ -292,7 +409,28 @@
             fio.setAttribute('d', d);
             fio.setAttribute('class', 'fio');
             fio.setAttribute('stroke', cor);
-            svg.append(halo, fio);
+            const alvo = document.createElementNS(SVGNS, 'path');
+            alvo.setAttribute('d', d);
+            alvo.setAttribute('class', 'alvo');
+            grupo.append(halo, fio, alvo);
+            svg.appendChild(grupo);
+
+            // Hover no patch cord: tipo da porta do switch e tipo da porta do patch panel
+            // Hover no patch cord: mostra as caixas das duas portas, cada uma junto da sua porta
+            alvo.addEventListener('mouseenter', () => {
+                grupo.classList.add('hover');
+                [sw, pp].forEach(x => x.classList.add('is-hl'));
+                tipNoCabo = true;
+                mostrarTipNaPorta(tip, sw);
+                mostrarTipNaPorta(tip2, pp);
+            });
+            alvo.addEventListener('mouseleave', () => {
+                grupo.classList.remove('hover');
+                [sw, pp].forEach(x => x.classList.remove('is-hl'));
+                tipNoCabo = false;
+                tip.style.opacity = 0;
+                tip2.style.opacity = 0;
+            });
             const len = fio.getTotalLength();
             fio.style.setProperty('--len', len);
             if (!animar) fio.style.animation = 'none', fio.style.strokeDashoffset = 0;
@@ -341,6 +479,7 @@
         selecionada = null;
         root.classList.remove('net-sel-sw', 'net-sel-pp');
         chip.style.display = 'none';
+        svgTemp.innerHTML = '';
     }
 
     function setModo(on) {
@@ -377,6 +516,7 @@
             });
             conexoes.push(data.conexao);
             pintar();
+            mostrarCabosDe(Number(sw.dataset.dev));
             toastMsg(`Conectado: ${sw.dataset.label} porta ${sw.dataset.porta} ↔ ${pp.dataset.label} porta ${pp.dataset.porta}`, 'ok');
         } catch (e) {
             toastMsg(e.message, 'err');
@@ -398,6 +538,7 @@
     function clique(el) {
         if (!modo) {
             if (el.dataset.kind === 'pp') abrirPorta(el);
+            else abrirPortaSwitch(el);
             return;
         }
         const c = conexaoDe(el);
@@ -425,6 +566,8 @@
 
     // Eventos (delegados)
     root.addEventListener('click', e => {
+        const btnCabos = e.target.closest('.sw-ver-cabos');
+        if (btnCabos) { selecionarSwitch(Number(btnCabos.dataset.dev)); return; }
         const el = e.target.closest('.net-port');
         if (el) { clique(el); return; }
         const chassis = e.target.closest('.sw-chassis');
@@ -432,32 +575,58 @@
     });
 
     let hl = [];
+    // Conteúdo da caixa de uma porta (usado no hover da porta e no hover do patch cord)
+    function conteudoTip(el) {
+        const c = conexaoDe(el);
+        const base = document.createElement('div');
+        base.textContent = el.dataset.tip;
+        let html = base.innerHTML;
+        if (el.dataset.kind === 'sw' && el.dataset.tipoNome) {
+            const t = document.createElement('span');
+            t.textContent = 'Tipo: ' + el.dataset.tipoNome;
+            html += '<br>' + t.innerHTML;
+        }
+        if (!c) {
+            html += '<br><span class="net-tip-none">' + (el.dataset.kind === 'pp' ? 'Não está ligada a switch' : 'Não está ligada a patch panel') + '</span>';
+        } else {
+            const outro = document.createElement('span');
+            outro.textContent = (el.dataset.kind === 'pp' ? 'No switch: ' : 'No patch panel: ') + descricaoParceiro(c, el.dataset.kind);
+            html += '<br><span class="net-tip-link">● ' + outro.innerHTML + '</span>';
+        }
+        return html;
+    }
+
+    // Posiciona a caixa junto da porta: acima no patch panel, abaixo no switch
+    function mostrarTipNaPorta(caixa, el) {
+        caixa.innerHTML = conteudoTip(el);
+        caixa.style.opacity = 1;
+        const r = (el.querySelector('.sw-jack, .pp-jack') || el).getBoundingClientRect();
+        const w = caixa.offsetWidth, h = caixa.offsetHeight;
+        let left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 8));
+        let top = el.dataset.kind === 'pp' ? r.top - h - 10 : r.bottom + 10;
+        if (top < 8) top = r.bottom + 10;
+        if (top + h > window.innerHeight - 8) top = r.top - h - 10;
+        caixa.style.left = left + 'px';
+        caixa.style.top = top + 'px';
+    }
+
     root.addEventListener('mouseover', e => {
         const el = e.target.closest('.net-port');
         if (!el) return;
         hl.forEach(x => x.classList.remove('is-hl'));
         hl = [];
         const c = conexaoDe(el);
-        let html = '';
-        const base = document.createElement('div');
-        base.textContent = el.dataset.tip;
-        html = base.innerHTML;
-        if (!c) {
-            html += '<br><span class="net-tip-none">' + (el.dataset.kind === 'pp' ? 'Não está ligada a switch' : 'Não está ligada a patch panel') + '</span>';
-        }
         if (c) {
-            const outro = document.createElement('span');
-            outro.textContent = (el.dataset.kind === 'pp' ? 'No switch: ' : 'No patch panel: ') + descricaoParceiro(c, el.dataset.kind);
-            html += '<br><span class="net-tip-link">● ' + outro.innerHTML + '</span>';
             const p = parceiro(c, el.dataset.kind);
             hl = [el];
             if (p) hl.push(p);
             hl.forEach(x => x.classList.add('is-hl'));
         }
-        tip.innerHTML = html;
+        tip.innerHTML = conteudoTip(el);
         tip.style.opacity = 1;
     });
     root.addEventListener('mousemove', e => {
+        if (tipNoCabo) return; // caixas presas às portas enquanto o mouse está no patch cord
         tip.style.left = (e.clientX + 14) + 'px';
         tip.style.top = (e.clientY + 14) + 'px';
     });
@@ -472,6 +641,7 @@
     if (toggle) toggle.addEventListener('click', () => setModo(!modo));
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape' && fundoModal.classList.contains('show')) { fecharPorta(); return; }
+        if (e.key === 'Escape' && fundoSw.classList.contains('show')) { fecharPortaSwitch(); return; }
         if (e.key === 'Escape' && modo) {
             if (selecionada) limparSelecao(); else setModo(false);
         }
@@ -498,7 +668,7 @@
         portaAtual = el;
         const vinculada = el.classList.contains('is-linked');
         document.getElementById('pm-titulo').textContent = `Patch panel ${el.dataset.label} · porta ${el.dataset.porta}`;
-        document.getElementById('pm-sub').textContent = vinculada ? 'Vinculada a uma sala — edite ou desvincule' : 'Porta livre — escolha a sala';
+        document.getElementById('pm-sub').textContent = vinculada ? 'Vinculada a uma sala/ambiente — edite ou desvincule' : 'Porta livre — escolha a sala/ambiente';
         buscaSala.value = '';
         listaSalas.querySelectorAll('li').forEach(li => li.style.display = '');
         marcarSala(el.dataset.salaId);
@@ -543,7 +713,7 @@
 
     document.getElementById('pm-salvar').addEventListener('click', async function () {
         if (!portaAtual) return;
-        if (!salaSel) { erroModal.textContent = 'Escolha a sala.'; erroModal.style.display = 'block'; return; }
+        if (!salaSel) { erroModal.textContent = 'Escolha a sala/ambiente.'; erroModal.style.display = 'block'; return; }
         this.disabled = true;
         try {
             const tamanho = document.getElementById('pm-tamanho').value;
@@ -563,7 +733,7 @@
 
     document.getElementById('pm-remover').addEventListener('click', async function () {
         if (!portaAtual) return;
-        let msg = `Desvincular a porta ${portaAtual.dataset.porta} do patch panel ${portaAtual.dataset.label} da sala?`;
+        let msg = `Desvincular a porta ${portaAtual.dataset.porta} do patch panel ${portaAtual.dataset.label} da sala/ambiente?`;
         if (portaAtual.dataset.marcada === '1') msg += '\n\nA marcação desta porta na planta também será removida.';
         if (!confirm(msg)) return;
         try {
@@ -572,6 +742,51 @@
         } catch (e) {
             erroModal.textContent = e.message;
             erroModal.style.display = 'block';
+        }
+    });
+
+    // ---------- Formulário do tipo da porta do switch ----------
+    const URL_EQUIP = @json(url('/equipamentos'));
+    const fundoSw = document.getElementById('ps-fundo');
+    const erroSw = document.getElementById('ps-erro');
+    let portaSwAtual = null, tipoSwSel = '';
+
+    function marcarTipoSw(id) {
+        tipoSwSel = id ? String(id) : '';
+        document.querySelectorAll('#ps-tipos button').forEach(b => b.classList.toggle('sel', b.dataset.id === tipoSwSel));
+    }
+    function abrirPortaSwitch(el) {
+        portaSwAtual = el;
+        document.getElementById('ps-titulo').textContent = `${el.dataset.label} · porta ${el.dataset.porta}`;
+        marcarTipoSw(el.dataset.tipoId);
+        erroSw.style.display = 'none';
+        const c = conexaoDe(el);
+        const info = document.getElementById('ps-pp');
+        info.style.display = c ? '' : 'none';
+        if (c) info.textContent = `🔗 Ligada ao patch panel ${c.ppLabel}, porta ${c.ppPorta}`;
+        tip.style.opacity = 0;
+        fundoSw.classList.add('show');
+    }
+    function fecharPortaSwitch() {
+        fundoSw.classList.remove('show');
+        portaSwAtual = null;
+    }
+    document.getElementById('ps-tipos').addEventListener('click', e => { const b = e.target.closest('button'); if (b) marcarTipoSw(b.dataset.id); });
+    document.getElementById('ps-fechar').addEventListener('click', fecharPortaSwitch);
+    document.getElementById('ps-cancelar').addEventListener('click', fecharPortaSwitch);
+    fundoSw.addEventListener('click', e => { if (e.target === fundoSw) fecharPortaSwitch(); });
+    document.getElementById('ps-salvar').addEventListener('click', async function () {
+        if (!portaSwAtual) return;
+        this.disabled = true;
+        try {
+            await api('PUT', `${URL_EQUIP}/${portaSwAtual.dataset.dev}/porta/${portaSwAtual.dataset.porta}/tipo`, {
+                tipo_porta_switch_id: tipoSwSel ? Number(tipoSwSel) : null,
+            });
+            window.location.reload();
+        } catch (e) {
+            erroSw.textContent = e.message;
+            erroSw.style.display = 'block';
+            this.disabled = false;
         }
     });
 

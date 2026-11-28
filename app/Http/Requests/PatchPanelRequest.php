@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Support\PortasEmUso;
 
 class PatchPanelRequest extends FormRequest
 {
@@ -42,5 +43,25 @@ class PatchPanelRequest extends FormRequest
             'qtde_portas.integer' => 'A quantidade de portas deve ser um número inteiro',
             'qtde_portas.min' => 'O patch panel deve ter pelo menos 1 porta',
         ];
+    }
+
+    /**
+     * Não deixa diminuir as portas abaixo da maior porta em uso (sala/ambiente ou patch cord).
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $patchPanel = $this->route('patchPanel');
+            $nova = (int) $this->input('qtde_portas');
+            if (!$patchPanel || $validator->errors()->has('qtde_portas') || !$nova) {
+                return;
+            }
+            $uso = PortasEmUso::patchPanel($patchPanel);
+            if ($uso && $nova < $uso['porta']) {
+                $validator->errors()->add('qtde_portas',
+                    "Não é possível reduzir para {$nova} portas: a porta {$uso['porta']} está {$uso['motivo']}. "
+                    . "O mínimo para este patch panel é {$uso['porta']} portas (ou libere a porta antes).");
+            }
+        });
     }
 }

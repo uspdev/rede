@@ -3,7 +3,7 @@
 @section('content')
 <div class="card">
     <div class="card-header">
-        <h1>Editar Local: {{ $sala->nome }}</h1>
+        <h1>Editar Sala/Ambiente: {{ $sala->nome }}</h1>
     </div>
     <div class="card-body">
         <form action="{{ route('salas.update', ['sala' => $sala]) }}" method="POST">
@@ -20,11 +20,11 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label for="nome" class="form-label">Número do Local/Sala *</label>
+                <label for="nome" class="form-label">Nome/Número da Sala/Ambiente *</label>
                 <input type="text" class="form-control" id="nome" name="nome" value="{{ $sala->nome }}">
             </div>
             <div class="mb-3">
-                <label for="descricao" class="form-label">Descrição do Local/Sala</label>
+                <label for="descricao" class="form-label">Descrição da Sala/Ambiente</label>
                 <input type="text" class="form-control" id="descricao" name="descricao" value="{{ $sala->descricao }}">
             </div>
             <div class="d-flex justify-content-between">

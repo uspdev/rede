@@ -20,7 +20,10 @@
           </div>
           <div class="mb-3">
             <label class="form-label">Quantidade de Portas *</label>
-            <input type="number" name="qtde_portas" class="form-control" value="{{ old('qtde_portas', $modelo->qtde_portas) }}" min="1">
+            <input type="number" name="qtde_portas" class="form-control" value="{{ old('qtde_portas', $modelo->qtde_portas) }}" min="{{ $emUso['porta'] ?? 1 }}">
+            @if($emUso)
+                <div class="form-text text-muted small">Mínimo: <strong>{{ $emUso['porta'] }}</strong> — a porta {{ $emUso['porta'] }} {{ $emUso['motivo'] }}.</div>
+            @endif
           </div>
           @include('modelo-switches.partials.numeracao', ['valor' => $modelo->numeracao_portas])
           <div class="mb-3 form-check">

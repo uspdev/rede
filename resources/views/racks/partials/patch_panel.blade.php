@@ -34,6 +34,7 @@
                 'tip' => $tip,
                 'sala_id' => $sala->id,
                 'tipo_id' => $sala->pivot->tipo_porta_id,
+                'tipo_nome' => $tipo?->nome,
                 'comentario' => $sala->pivot->comentario,
                 'tamanho' => $sala->pivot->tamanho,
                 'marcada' => (bool) $sala->pivot->planta_id,
@@ -105,6 +106,22 @@
         clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 72%, 72% 100%, 28% 100%, 28% 72%, 0 72%);
     }
     .pp-port.is-linked .pp-jack { background: var(--pp-cor); box-shadow: 0 0 4px var(--pp-cor), inset 0 0 0 1px rgba(0,0,0,.35); }
+
+    /* Porta sem sala/ambiente: "?" para destacar que o destino não foi identificado */
+    .pp-jack { position: relative; }
+    .pp-port:not(.is-linked) .pp-jack::after,
+    .pp-sem-sala {
+        content: "?";
+        font: 800 10px/1 system-ui, sans-serif;
+        color: #ffc107;
+        text-shadow: 0 0 2px #000, 0 0 3px #000;
+    }
+    .pp-port:not(.is-linked) .pp-jack::after {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        pointer-events: none;
+    }
+    .pp-sem-sala { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 3px; background: #4a5057; border: 1px solid rgba(0,0,0,.35); }
     .pp-port:hover .pp-jack { transform: scale(1.15); }
 </style>
 
@@ -122,7 +139,7 @@
             <div>
                 <div class="pp-title">
                     <a href="{{ route('patch-panels.show', ['patchPanel' => $patchPanel]) }}">{{ $patchPanel->nome }}</a>
-                    <small>{{ count($painel['portas']) }}/{{ $totalPortas }} vinculadas a salas</small>
+                    <small>{{ count($painel['portas']) }}/{{ $totalPortas }} vinculadas a salas/ambientes</small>
                 </div>
                 <div class="pp-panel">
                     <div class="pp-ear"><span></span>@if(count($linhas) > 1)<span></span>@endif</div>
@@ -142,11 +159,12 @@
                                                  @if($info)
                                                  data-sala-id="{{ $info['sala_id'] }}"
                                                  data-tipo-id="{{ $info['tipo_id'] }}"
+                                                 data-tipo-nome="{{ $info['tipo_nome'] ?? '' }}"
                                                  data-comentario="{{ $info['comentario'] }}"
                                                  data-tamanho="{{ $info['tamanho'] }}"
                                                  data-marcada="{{ $info['marcada'] ? 1 : 0 }}"
                                                  @endif
-                                                 data-tip="Patch panel {{ $patchPanel->nome }} · porta {{ $porta }} · {{ $info['tip'] ?? 'sem sala' }}">
+                                                 data-tip="Patch panel {{ $patchPanel->nome }} · porta {{ $porta }} · {{ $info['tip'] ?? 'sem sala/ambiente' }}">
                                                 <span class="pp-num"><i></i>{{ $porta }}</span>
                                                 <span class="pp-jack"></span>
                                             </div>
@@ -175,7 +193,7 @@
         </span>
     @endif
     <span class="net-legend-item">
-        <span class="net-swatch" style="background: #4a5057;"></span>Sem sala
+        <span class="pp-sem-sala">?</span>Sem sala/ambiente
     </span>
     <span class="net-legend-item">
         <span class="net-legend-led" style="background: #2ecc71;"></span>Conectada a um switch

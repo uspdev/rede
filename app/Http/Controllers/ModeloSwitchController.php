@@ -39,7 +39,10 @@ class ModeloSwitchController extends Controller
     public function edit(ModeloSwitch $modeloSwitch)
     {
         Gate::authorize('admin');
-        return view('modelo-switches.edit', ['modelo' => $modeloSwitch]);
+        return view('modelo-switches.edit', [
+            'modelo' => $modeloSwitch,
+            'emUso' => \App\Support\PortasEmUso::modelo($modeloSwitch),
+        ]);
     }
 
     public function update(ModeloSwitchRequest $request, ModeloSwitch $modeloSwitch)
@@ -55,7 +58,7 @@ class ModeloSwitchController extends Controller
         Gate::authorize('admin');
 
         if ($modeloSwitch->equipamentos()->count() > 0) {
-            session()->flash('alert-danger', 'Não é possível remover: existem equipamentos usando este modelo.');
+            session()->flash('alert-danger', 'Não é possível remover: existem switches usando este modelo.');
             return back();
         }
 

@@ -17,6 +17,11 @@ class Predio extends Model
         return $this->hasMany(Sala::class);
     }
 
+    public function telecomRooms()
+    {
+        return $this->hasMany(TelecomRoom::class);
+    }
+
     public function racks()
     {
         return $this->hasMany(Rack::class);

@@ -17,7 +17,7 @@ class PatchPanelController extends Controller
     public function create(Request $request)
     {
         Gate::authorize('admin');
-        $racks = Rack::all();
+        $racks = Rack::with('telecomRoom', 'predio')->orderBy('predio_id')->orderBy('telecom_room_id')->orderBy('nome')->get();
         $rack_id = $request->input('rack_id');
 
         return view('patch-panels.create', [
@@ -44,22 +44,24 @@ class PatchPanelController extends Controller
             ->orderBy('porta', 'asc')
             ->get();
 
-        $salasPredio = Sala::where('predio_id', $patchPanel->rack->predio_id)->get();
+        $salasPredio = Sala::where('predio_id', $patchPanel->rack->predio_id)->orderBy('nome')->get();
 
         return view('patch-panels.show', [
             'patchPanel' => $patchPanel,
             'salasVinculadas' => $salasVinculadas, 
             'salasPredio' => $salasPredio,
+            'tiposPorta' => \App\Models\TipoPorta::orderBy('nome')->get(['id', 'nome', 'cor']),
         ]);
     }
 
     public function edit(PatchPanel $patchPanel)
     {
         Gate::authorize('admin');
-        $racks = Rack::all();
+        $racks = Rack::with('telecomRoom', 'predio')->orderBy('predio_id')->orderBy('telecom_room_id')->orderBy('nome')->get();
 
         return view('patch-panels.edit', [
             'patchPanel' => $patchPanel,
+            'emUso' => \App\Support\PortasEmUso::patchPanel($patchPanel),
             'racks' => $racks,
         ]);
     }
@@ -203,7 +205,7 @@ class PatchPanelController extends Controller
             'comentario' => 'nullable|string|max:255',
             'tamanho' => 'nullable|numeric|min:0',
         ], [
-            'sala_id.required' => 'Escolha a sala.',
+            'sala_id.required' => 'Escolha a sala/ambiente.',
         ]);
 
         $vinculo = PatchPanelSala::where('patch_panel_id', $patchPanel->id)->where('porta', $porta)->first();

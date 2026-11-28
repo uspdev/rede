@@ -12,8 +12,10 @@ class PredioController extends Controller
     {
         Gate::authorize('admin');
         return view('predios.index',[
-            'predios' => Predio::all(),
-         ]);
+            'predios' => Predio::withCount(['salas', 'plantas', 'telecomRooms'])
+                ->orderBy('nome')
+                ->get(),
+        ]);
     }
 
     public function create()
@@ -34,8 +36,31 @@ class PredioController extends Controller
     {
         Gate::authorize('admin');
         return view('predios.show', [
+            'predio' => $predio->loadCount(['salas', 'plantas', 'telecomRooms']),
+        ]);
+    }
+
+    /** Só as TRs do prédio e os racks de cada uma */
+    public function trs(Predio $predio)
+    {
+        Gate::authorize('admin');
+        return view('predios.trs', [
             'predio' => $predio,
-            'racks' => $predio->racks()->orderBy('nome')->get(),
+            'trs' => $predio->telecomRooms()
+                ->with(['racks' => fn ($q) => $q->withCount('equipamentos', 'patchPanels')->orderBy('nome')])
+                ->orderBy('nome')
+                ->get(),
+            // racks que (ainda) não estão em nenhuma TR
+            'racksSemTr' => $predio->racks()->whereNull('telecom_room_id')->orderBy('nome')->get(),
+        ]);
+    }
+
+    /** Só as salas do prédio */
+    public function salas(Predio $predio)
+    {
+        Gate::authorize('admin');
+        return view('predios.salas', [
+            'predio' => $predio,
             'salas' => $predio->salas()->orderBy('nome')->get(),
         ]);
     }
@@ -63,11 +88,11 @@ class PredioController extends Controller
             return back();
         }
 
-        if($predio->salas->isEmpty() && $predio->racks->isEmpty()) {
+        if($predio->salas->isEmpty() && $predio->racks->isEmpty() && $predio->telecomRooms->isEmpty()) {
             $predio->delete();
             session()->flash('alert-success', 'Prédio removido com sucesso!');
         } else {
-            session()->flash('alert-danger', 'Prédio não deletado, pois possui salas ou racks cadastrados!');
+            session()->flash('alert-danger', 'Prédio não deletado, pois possui salas/ambientes, Telecommunications Rooms ou racks cadastrados!');
         }
         return redirect()->route('predios.index');
     }

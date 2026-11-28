@@ -2,9 +2,6 @@
 
 @section('content')
 
-@can('user')
-@include('partials.search')
-@endcan
 <br>
 
 <div class="card">
@@ -14,18 +11,18 @@
                 <i class="fas fa-door-open"></i> Local: {{ $sala->nome }}
                 <small class="text-muted d-block">{{ $sala->predio->nome }}</small>
             </h1>
-            <a href="{{ route('predios.show', ['predio' => $sala->predio]) }}" class="btn btn-secondary">
+            <a href="{{ route('predios.salas', ['predio' => $sala->predio]) }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Voltar
             </a>
         </div>
     </div>
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3>Portas Vinculadas Neste Local/Sala</h3>
+            <h3>Portas Vinculadas Nesta Sala/Ambiente</h3>
         </div>
 
         @if($patchPanels->isEmpty())
-            <div class="alert alert-info">Nenhuma porta vinculada a esta sala.</div>
+            <div class="alert alert-info">Nenhuma porta vinculada a esta sala/ambiente.</div>
         @else
             <div class="table-responsive">
                 <table class="table table-hover">

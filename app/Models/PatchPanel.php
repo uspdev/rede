@@ -45,11 +45,6 @@ class PatchPanel extends Model
                 ->first();
     }
 
-    public function portas()
-    {
-        return $this->hasMany(Porta::class);
-    }
-
     public function tipoPortas()
     {
         return $this->belongsToMany(TipoPorta::class, 'patch_panel_sala', 'patch_panel_id', 'tipo_porta_id')

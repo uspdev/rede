@@ -33,7 +33,7 @@ class SalaRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nome.required' => 'O nome da sala é obrigatório',
+            'nome.required' => 'O nome da sala/ambiente é obrigatório',
             'nome.max' => 'O nome não pode ter mais que 255 caracteres',
             'descricao.max' => 'A descrição não pode ter mais que 255 caracteres',
             'predio_id.required' => 'O prédio é obrigatório',

@@ -16,7 +16,7 @@
                     @foreach($racks as $rack)
                         <option value="{{ $rack->id }}" 
                             {{ (old('rack_id') ?? $rack_selecionado ?? '') == $rack->id ? 'selected' : '' }}>
-                            {{ $rack->nome }} ({{ $rack->predio->nome }})
+                            {{ $rack->nome }} ({{ $rack->telecomRoom?->nome ? $rack->telecomRoom->nome . ' · ' : '' }}{{ $rack->predio->nome }})
                         </option>
                     @endforeach
                 </select>

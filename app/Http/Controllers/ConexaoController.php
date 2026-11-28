@@ -26,7 +26,7 @@ class ConexaoController extends Controller
 
         $totalEquip = (int) ($equipamento->modeloSwitch?->qtde_portas ?: 24);
         if ($data['porta_equipamento'] > $totalEquip) {
-            return response()->json(['message' => "O equipamento {$equipamento->hostname} tem apenas {$totalEquip} portas."], 422);
+            return response()->json(['message' => "O switch {$equipamento->hostname} tem apenas {$totalEquip} portas."], 422);
         }
         if ($data['porta_patch_panel'] > $patchPanel->qtde_portas) {
             return response()->json(['message' => "O patch panel {$patchPanel->nome} tem apenas {$patchPanel->qtde_portas} portas."], 422);

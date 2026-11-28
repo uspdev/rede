@@ -3,7 +3,7 @@
 @section('content')
 <div class="card">
     <div class="card-header">
-        <h1>Cadastrar Novo Local ou Sala</h1>
+        <h1>Cadastrar Nova Sala/Ambiente</h1>
     </div>
     <div class="card-body">
         <form action="{{ route('salas.store') }}" method="POST">
@@ -22,11 +22,11 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label for="nome" class="form-label">Número do Local/Sala *</label>
+                <label for="nome" class="form-label">Nome/Número da Sala/Ambiente *</label>
                 <input type="text" class="form-control" id="nome" name="nome" value="{{ old('nome') }}">
             </div>
             <div class="mb-3">
-                <label for="descricao" class="form-label">Descrição do Local/Sala</label>
+                <label for="descricao" class="form-label">Descrição da Sala/Ambiente</label>
                 <input type="text" class="form-control" id="descricao" name="descricao" value="{{ old('descricao') }}">
             </div>
             <div class="d-flex justify-content-between">

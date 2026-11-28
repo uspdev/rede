@@ -12,10 +12,14 @@
 <div class="container-fluid py-3">
     <!-- Controles Superiores -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <!-- Botão Voltar -->
-        <a href="{{ route('plantas.index', ['predio' => $planta->predio_id]) }}" style="text-decoration: none; color: #000; background-color: #f0f0f0; padding: 6px 12px; border-radius: 4px; font-size: 14px;">
-            &larr; Voltar
-        </a>
+        <!-- Botão Voltar (a lista de plantas é só para admin) -->
+        @can('admin')
+            <a href="{{ route('plantas.index', ['predio' => $planta->predio_id]) }}" style="text-decoration: none; color: #000; background-color: #f0f0f0; padding: 6px 12px; border-radius: 4px; font-size: 14px;">
+                &larr; Voltar
+            </a>
+        @else
+            <h1 class="h5 mb-0">{{ $planta->name }} <small class="text-muted">· {{ $planta->predio?->nome }}</small></h1>
+        @endcan
 
         <!-- Lado Direito: Controles de Zoom + Botão PDF -->
         <div style="display: flex; gap: 10px; align-items: center;">
@@ -65,6 +69,32 @@
                     </label>
                 </div>
             </div>
+            @if($percursos->isNotEmpty())
+                @php $tiposInfra = $percursos->pluck('tipo')->unique()->sort(); @endphp
+                <div class="d-flex flex-wrap align-items-center gap-3 mt-2 pt-2" style="border-top: 1px solid #e2e8f0; font-size: 13px;">
+                    <label class="d-flex align-items-center gap-1 mb-0" style="cursor: pointer;">
+                        <input type="checkbox" id="mostrar-infra" checked>
+                        <strong>Infraestrutura:</strong>
+                    </label>
+                    @foreach($tiposInfra as $tipo)
+                        @php $t = \App\Models\PlantaPercurso::TIPOS[$tipo] ?? null; @endphp
+                        @if($t)
+                            <span class="d-inline-flex align-items-center gap-1">
+                                <span style="display:inline-block; width:24px; height:0; border-top: {{ max(2, $t['largura']) }}px {{ $t['traco'] ? 'dashed' : 'solid' }} {{ $t['cor'] }};"></span>
+                                {{ $t['nome'] }}
+                            </span>
+                        @endif
+                    @endforeach
+                    @can('admin')
+                        <a href="{{ route('plantas.percursos', ['planta' => $planta]) }}" class="ml-auto small"><i class="fas fa-pen"></i> editar infraestrutura</a>
+                    @endcan
+                </div>
+                <script>
+                    document.getElementById('mostrar-infra').addEventListener('change', function () {
+                        document.querySelectorAll('.planta-percursos, .percurso-num').forEach(s => s.style.display = this.checked ? '' : 'none');
+                    });
+                </script>
+            @endif
         </div>
     </div>
 
@@ -79,6 +109,9 @@
                     <!-- Imagem SVG da Planta Baixa -->
                     <img id="svg-image" src="{{ route('plantas.show', ['predio' => $planta->predio_id, 'planta' => $planta]) }}" style="width: 100%; height: {{ $planta->recorteValido() ? '100%' : 'auto' }}; display: block; user-select: none;" draggable="false" alt="{{ $planta->name }}">
 
+                    <!-- Camada de infraestrutura (eletrocalhas, canaletas, dutos) -->
+                    @include('plantas.partials.percursos', ['percursos' => $percursos, 'numerar' => true])
+
                     <!-- Renderização dos Marcadores Visíveis -->
                     @include('plantas.partials.markers', ['markers' => $markers])
                     @include('salas.partials.markers', ['salas' => $planta->salas])
@@ -87,10 +120,46 @@
         </div>
     </div>
 
+    @if($percursos->isNotEmpty())
+        <!-- Tabela de infraestrutura (mesma numeração da planta) -->
+        <div class="card shadow-sm mb-4" id="tabela-infra">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="fas fa-route"></i> Infraestrutura — eletrocalhas, canaletas e dutos</h5>
+                @can('admin')
+                    <a href="{{ route('plantas.percursos', ['planta' => $planta]) }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-pen"></i> Editar</a>
+                @endcan
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th style="width: 60px;">Nº</th><th style="width: 180px;">Tipo</th><th>Descrição / comentário</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach($percursos->values() as $i => $percurso)
+                                @php $t = $percurso->estilo(); @endphp
+                                <tr>
+                                    <td>
+                                        <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: {{ $t['cor'] }}; color: #fff; font-weight: 700; font-size: 12px;">{{ $i + 1 }}</span>
+                                    </td>
+                                    <td>
+                                        <span style="display: inline-block; width: 24px; height: 0; vertical-align: middle; margin-right: 4px; border-top: {{ max(2, $t['largura']) }}px {{ $t['traco'] ? 'dashed' : 'solid' }} {{ $t['cor'] }};"></span>
+                                        {{ $t['nome'] }}
+                                    </td>
+                                    <td>{!! $percurso->descricao ? e($percurso->descricao) : '<span class="text-muted">—</span>' !!}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Tabela Detalhada de Pontos Visíveis Agrupados por Sala -->
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h5 class="card-title mb-0">Detalhamento dos Pontos por Sala</h5>
+            <h5 class="card-title mb-0">Detalhamento dos Pontos por Sala/Ambiente</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -98,14 +167,14 @@
                     <thead class="table-light">
                         <tr>
                             <th>Ponto</th>
-                            <th>Sala</th>
+                            <th>Sala/Ambiente</th>
                             <th>Tipo</th>
                             <th>Comprimento</th>
                             <th>Última atualização</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($markers->groupBy(fn($item) => optional($item->sala)->nome ?? 'Sem Sala Definida') as $nomeSala => $pontosDaSala)
+                        @forelse($markers->groupBy(fn($item) => optional($item->sala)->nome ?? 'Sem Sala/Ambiente Definida') as $nomeSala => $pontosDaSala)
                             @php
                                 $salaObj = $pontosDaSala->first()?->sala;
                                 $salaKey = Str::slug($nomeSala);
@@ -115,7 +184,7 @@
                                 <td colspan="5" class="fw-bold text-uppercase py-2 text-center">
                                     <i class="bi bi-door-closed me-1"></i> {{ $nomeSala }}
                                     @if($salaObj && !empty($salaObj->descricao))
-                                        <span class="text-muted fw-normal text-lowercase"> — {{ $salaObj->descricao }} - Quantidade de pontos na sala: <b>{{$pontosDaSala->count()}}</b></span>
+                                        <span class="text-muted fw-normal text-lowercase"> — {{ $salaObj->descricao }} - Quantidade de pontos na sala/ambiente: <b>{{$pontosDaSala->count()}}</b></span>
                                     @endif
                                 </td>
                             </tr>

@@ -3,7 +3,7 @@
 @section('content')
 <div class="card">
     <div class="card-header">
-        <h1>Editar Tipo de Porta: {{ $tipoPorta->nome }}</h1>
+        <h1>Editar Tipo de Porta de Patch Panel: {{ $tipoPorta->nome }}</h1>
     </div>
     <div class="card-body">
         <form action="{{ route('tipo-portas.update', ['tipoPorta' => $tipoPorta]) }}" method="POST">
@@ -21,27 +21,9 @@
                        required>
             </div>
 
-            {{-- Campo Cor --}}
             <div class="mb-3">
-                <label for="cor" class="form-label">Cor da Marcação</label>
-                <div class="input-group">
-                    <input type="color" 
-                           class="form-control form-control-color" 
-                           id="cor_picker" 
-                           value="{{ old('cor', $tipoPorta->cor ?? '#FF0000') }}" 
-                           title="Escolha a cor"
-                           onchange="document.getElementById('cor').value = this.value">
-                    
-                    <input type="text" 
-                           class="form-control" 
-                           id="cor" 
-                           name="cor" 
-                           value="{{ old('cor', $tipoPorta->cor ?? '#FF0000') }}" 
-                           placeholder="#FF0000"
-                           maxlength="7"
-                           onchange="document.getElementById('cor_picker').value = this.value">
-                </div>
-                <div class="form-text">Cor utilizada para identificar o marcador no mapa (Padrão: Vermelho).</div>
+                <label class="form-label">Cor</label>
+                @include('partials.cor-picker', ['name' => 'cor', 'valor' => old('cor', $tipoPorta->cor ?? '#FF0000'), 'ajuda' => 'Cor utilizada para identificar o marcador no mapa.'])
             </div>
             
             {{-- Ações --}}

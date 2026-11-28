@@ -33,6 +33,12 @@ class Planta extends Model
         return $this->hasMany(Sala::class);
     }
 
+    /** Camada de infraestrutura: eletrocalhas, canaletas e dutos */
+    public function percursos()
+    {
+        return $this->hasMany(PlantaPercurso::class);
+    }
+
     /**
      * [minX, minY, largura, altura] do SVG. Lê só o cabeçalho do arquivo (pode ter vários MB).
      */

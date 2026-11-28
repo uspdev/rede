@@ -26,7 +26,7 @@ class TipoPortaController extends Controller
     {
         Gate::authorize('admin');
         TipoPorta::create($request->validated() + ['user_id' => auth()->id()]);
-        session()->flash('alert-success', 'Tipo de porta criado com sucesso!');
+        session()->flash('alert-success', 'Tipo de porta de patch panel criado com sucesso!');
         return redirect()->route('tipo-portas.index');
     }
 
@@ -50,7 +50,7 @@ class TipoPortaController extends Controller
     {
         Gate::authorize('admin');
         $tipoPorta->update($request->validated() + ['user_id' => auth()->id()]);
-        session()->flash('alert-success', 'Tipo de porta atualizado com sucesso!');
+        session()->flash('alert-success', 'Tipo de porta de patch panel atualizado com sucesso!');
         return redirect()->route('tipo-portas.index');
     }
 
@@ -60,7 +60,7 @@ class TipoPortaController extends Controller
         
         if($tipoPorta->patchPanelSalas->isEmpty()) {
             $tipoPorta->delete();
-            session()->flash('alert-success', 'Tipo de porta removido com sucesso!');
+            session()->flash('alert-success', 'Tipo de porta de patch panel removido com sucesso!');
         } else {
             session()->flash('alert-danger', 'Tipo de porta não pode ser removido, pois está em uso!');
         }

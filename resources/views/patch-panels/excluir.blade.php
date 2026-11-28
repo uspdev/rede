@@ -32,7 +32,7 @@
         @else
             <div class="alert alert-warning mt-3 mb-4">
                 <strong>Atenção:</strong> ao excluir este patch panel, também serão apagados
-                <strong>{{ $vinculosSalas->count() }}</strong> vínculo(s) com salas
+                <strong>{{ $vinculosSalas->count() }}</strong> vínculo(s) com salas/ambientes
                 @if($marcadosEmPlanta)
                     (<strong>{{ $marcadosEmPlanta }}</strong> marcado(s) em plantas, que somem das plantas)
                 @endif
@@ -42,13 +42,13 @@
         @endif
 
         @if($vinculosSalas->isNotEmpty())
-            <h2 class="h6 mt-4"><i class="fas fa-door-open"></i> Vínculos com salas ({{ $vinculosSalas->count() }})</h2>
+            <h2 class="h6 mt-4"><i class="fas fa-door-open"></i> Vínculos com salas/ambientes ({{ $vinculosSalas->count() }})</h2>
             <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle">
                     <thead class="table-light">
                         <tr>
                             <th width="80px">Porta</th>
-                            <th>Sala</th>
+                            <th>Sala/Ambiente</th>
                             <th>Tipo de Porta</th>
                             <th>Comentário</th>
                             <th>Comprimento</th>

@@ -5,8 +5,6 @@ namespace Tests\Feature;
 use App\Models\Conexao;
 use App\Models\Equipamento;
 use App\Models\PatchPanel;
-use App\Models\Porta;
-use App\Models\Snapshot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Gate;
@@ -40,9 +38,6 @@ class ExcluirEquipamentoTest extends TestCase
             'equipamento_id' => $equip->id, 'porta_equipamento' => 5,
             'patch_panel_id' => $pp->id, 'porta_patch_panel' => 11,
         ]);
-        // histórico da API (FKs sem cascade)
-        $porta = Porta::forceCreate(['porta' => '5', 'equipamento_id' => $equip->id]);
-        Snapshot::forceCreate(['status' => 'up', 'porta_id' => $porta->id]);
 
         return [$admin, $equip, $pp];
     }
@@ -71,7 +66,7 @@ class ExcluirEquipamentoTest extends TestCase
         $this->assertDatabaseHas('equipamentos', ['id' => $equip->id]);
     }
 
-    public function test_exclui_equipamento_conexoes_e_historico(): void
+    public function test_exclui_equipamento_e_conexoes(): void
     {
         [$admin, $equip, $pp] = $this->cenario();
 
@@ -81,7 +76,6 @@ class ExcluirEquipamentoTest extends TestCase
 
         $this->assertDatabaseMissing('equipamentos', ['id' => $equip->id]);
         $this->assertDatabaseMissing('conexoes', ['equipamento_id' => $equip->id]);
-        $this->assertDatabaseMissing('portas', ['equipamento_id' => $equip->id]);
         $this->assertDatabaseHas('patch_panels', ['id' => $pp->id]);
     }
 

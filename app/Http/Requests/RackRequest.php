@@ -23,10 +23,8 @@ class RackRequest extends FormRequest
     {
         return [
             'nome' => 'required|string|max:255',
-            'predio_id' => 'required|exists:predios,id'
+            'telecom_room_id' => 'required|exists:telecom_rooms,id',
         ];
-    
-        return $rules;
     }
 
     public function messages(): array
@@ -34,7 +32,7 @@ class RackRequest extends FormRequest
         return [
             'nome.required' => 'O nome do rack é obrigatório',
             'nome.max' => 'O nome não pode ter mais que 255 caracteres',
-            'predio_id.required' => 'O prédio é obrigatório'
+            'telecom_room_id.required' => 'Escolha a Telecommunications Room do rack',
         ];
     }
 }

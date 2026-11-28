@@ -58,12 +58,13 @@
     .mk-toast.ok { background: #198754; } .mk-toast.err { background: #dc3545; } .mk-toast.info { background: #334155; }
 </style>
 
-<div class="mk-page">
+<div class="mk-page" data-foco-alvo>
 
 <div class="mk-toolbar">
     <a href="{{ route('plantas.index', ['predio' => $planta->predio_id]) }}" style="text-decoration: none; color: #000; background-color: #f0f0f0; padding: 5px 12px; border-radius: 4px;">
         &larr; Voltar
     </a>
+    @include('partials.tela-cheia')
 
     <div class="grupo">
         <button type="button" id="btnZoomIn" title="Aproximar">+</button>
@@ -95,7 +96,7 @@
 
 <div class="mk-layout">
     <!-- Viewport fixa para conter o zoom -->
-    <div id="viewport">
+    <div id="viewport" data-foco-altura>
 
         <!-- Target do Panzoom -->
         <div id="panzoom-target" style="position: relative; width: 100%; transform-origin: 0 0; cursor: grab; --escala-marcadores: {{ $escala }};">
@@ -161,13 +162,13 @@
 
                 <!-- Sala: só aparece para porta da lista que ainda não tem sala -->
                 <div id="divSalaLivre" style="display: none; margin-bottom: 8px;">
-                    <label for="salaLivre" style="display: block; font-size: 11px; margin-bottom: 2px; font-weight: bold;">Sala desta porta *</label>
+                    <label for="salaLivre" style="display: block; font-size: 11px; margin-bottom: 2px; font-weight: bold;">Sala/Ambiente desta porta *</label>
                     <select id="salaLivre" style="width: 100%; padding: 5px; font-size: 12px;">
                         @foreach($salasPredio as $sala)
                             <option value="{{ $sala->id }}">{{ $sala->nome }}</option>
                         @endforeach
                     </select>
-                    <small style="font-size: 10px; color: #64748b;">Sugerida: a sala marcada mais próxima.</small>
+                    <small style="font-size: 10px; color: #64748b;">Sugerida: a sala/ambiente marcada mais próxima.</small>
                 </div>
 
                 <!-- Tipo de Porta -->
@@ -238,15 +239,15 @@
 
     <!-- Lista lateral de pontos sem marcação -->
     @php $totalLista = $pontosSemMarcacao->count() + count($portasSemSala); @endphp
-    <aside class="mk-lista">
+    <aside class="mk-lista" data-foco-altura>
         <header>
             <strong>Pontos sem marcação (<span id="qtdeLista">{{ $totalLista }}</span>)</strong>
             <small>Arraste um ponto para o lugar dele na planta.</small>
-            <input type="search" id="buscaLista" placeholder="Buscar por ponto ou sala…">
+            <input type="search" id="buscaLista" placeholder="Buscar por ponto ou sala/ambiente…">
         </header>
         <ul id="lista">
             @if($pontosSemMarcacao->isNotEmpty())
-                <li class="grupo" data-grupo="vinculo">Com sala ({{ $pontosSemMarcacao->count() }})</li>
+                <li class="grupo" data-grupo="vinculo">Com sala/ambiente ({{ $pontosSemMarcacao->count() }})</li>
             @endif
             @foreach($pontosSemMarcacao as $ponto)
                 @php $nomePonto = optional(optional($ponto->patchPanel)->rack)->nome . '-' . optional($ponto->patchPanel)->nome . '-' . $ponto->porta; @endphp
@@ -265,7 +266,7 @@
             @endforeach
 
             @if(count($portasSemSala))
-                <li class="grupo" data-grupo="livre">Sem sala — escolha ao soltar ({{ count($portasSemSala) }})</li>
+                <li class="grupo" data-grupo="livre">Sem sala/ambiente — escolha ao soltar ({{ count($portasSemSala) }})</li>
             @endif
             @foreach($portasSemSala as $porta)
                 <li draggable="true"
@@ -280,7 +281,7 @@
                     style="--cor: #94a3b8;">
                     <span class="tri"></span>
                     <strong>{{ $porta['nome'] }}</strong>
-                    <small>sem sala</small>
+                    <small>sem sala/ambiente</small>
                 </li>
             @endforeach
         </ul>
@@ -904,13 +905,13 @@
 
     // Formulário de criação para uma porta que ainda não tem sala
     function prepararPortaSemSala(li, icone, evento) {
-        if (!SALAS_PREDIO.length) { closeForm(); toast('Cadastre uma sala neste prédio primeiro.', 'err'); return; }
+        if (!SALAS_PREDIO.length) { closeForm(); toast('Cadastre uma sala/ambiente neste prédio primeiro.', 'err'); return; }
         formContexto.portaSemSala = { pp: li.dataset.pp, porta: li.dataset.porta, nome: li.dataset.nome };
         document.getElementById('formTitle').innerText = 'Marcar porta ' + li.dataset.nome;
         divSelectPonto.style.display = 'none';
         selectPonto.required = false;
         divReadonlyPonto.style.display = 'block';
-        document.getElementById('inputPontoNome').value = li.dataset.nome + ' (sem sala)';
+        document.getElementById('inputPontoNome').value = li.dataset.nome + ' (sem sala/ambiente)';
         divSalaLivre.style.display = 'block';
         const sugestao = salaMaisProxima(icone);
         if (sugestao) document.getElementById('salaLivre').value = sugestao.id;

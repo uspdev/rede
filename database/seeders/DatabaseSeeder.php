@@ -14,10 +14,6 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $this->call([
-            EquipamentoSeeder::class,
-            PortaSeeder::class,
-            SnapshotSeeder::class,
-            MacSeeder::class,
             ModeloSwitchSeeder::class,
         ]);
     }

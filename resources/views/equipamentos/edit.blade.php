@@ -3,7 +3,7 @@
 @section('content')
 <div class="card">
   <div class="card-header bg-usp">
-    <span class="h4 mb-0 text-dark"><i class="fas fa-network-wired"></i> Editar Equipamento: {{ $equipamento->hostname }}</span>
+    <span class="h4 mb-0 text-dark"><i class="fas fa-network-wired"></i> Editar Switch: {{ $equipamento->hostname }}</span>
   </div>
   <div class="card-body">
     <div class="col-md-3">
@@ -15,7 +15,7 @@
           <select name="rack_id" class="form-control">
             @foreach($racks as $rack)
               <option value="{{ $rack->id }}" {{ old('rack_id', $equipamento->rack_id) == $rack->id ? 'selected' : '' }}>
-                {{ $rack->nome }} ({{ $rack->predio->nome }})
+                {{ $rack->nome }} ({{ $rack->telecomRoom?->nome ? $rack->telecomRoom->nome . ' · ' : '' }}{{ $rack->predio->nome }})
               </option>
             @endforeach
           </select>

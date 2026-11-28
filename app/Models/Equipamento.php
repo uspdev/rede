@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Equipamento extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'hostname',
         'ip',
@@ -20,14 +17,15 @@ class Equipamento extends Model
         'comentario',
     ];
 
-    public function portas()
-    {
-        return $this->hasMany(Porta::class);
-    }
-
     public function conexoes()
     {
         return $this->hasMany(Conexao::class);
+    }
+
+    /** Tipos atribuídos às portas deste switch */
+    public function portasSwitch()
+    {
+        return $this->hasMany(PortaSwitch::class);
     }
 
     public function rack()

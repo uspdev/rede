@@ -5,7 +5,7 @@
     <div class="card-header bg-usp">
         <div class="d-flex justify-content-between align-items-center">
             <h1 class="h4 mb-0 text-dark">
-                <i class="fas fa-plug"></i> Tipos de Porta
+                <i class="fas fa-plug"></i> Tipos de Porta de Patch Panel
             </h1>
             <a href="{{ route('tipo-portas.create') }}" class="btn btn-success">
                 <i class="fas fa-plus"></i> Novo Tipo
@@ -13,6 +13,10 @@
         </div>
     </div>
     <div class="card-body">
+        <p class="text-muted small mb-3">
+            Tipos atribuídos às portas dos <strong>patch panels</strong> (marcações nas salas/ambientes e plantas).
+            Para os tipos das portas de switch, veja <a href="{{ route('tipo-portas-switch.index') }}">Tipos de Porta de Switch</a>.
+        </p>
         @if($tipoPortas->isEmpty())
             <div class="alert alert-info">Nenhum tipo de porta cadastrado.</div>
         @else

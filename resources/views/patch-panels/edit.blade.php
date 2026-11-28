@@ -15,7 +15,7 @@
                 <select class="form-select" id="rack_id" name="rack_id" required>
                     @foreach($racks as $rack)
                         <option value="{{ $rack->id }}" {{ $patchPanel->rack_id == $rack->id ? 'selected' : '' }}>
-                            {{ $rack->nome }} ({{ $rack->predio->nome }})
+                            {{ $rack->nome }} ({{ $rack->telecomRoom?->nome ? $rack->telecomRoom->nome . ' · ' : '' }}{{ $rack->predio->nome }})
                         </option>
                     @endforeach
                 </select>
@@ -28,7 +28,10 @@
             
             <div class="mb-3">
                 <label for="qtde_portas" class="form-label">Quantidade de Portas *</label>
-                <input type="number" class="form-control" id="qtde_portas" name="qtde_portas" min="1" value="{{ $patchPanel->qtde_portas }}">
+                <input type="number" class="form-control" id="qtde_portas" name="qtde_portas" min="{{ $emUso['porta'] ?? 1 }}" value="{{ old('qtde_portas', $patchPanel->qtde_portas) }}">
+                @if($emUso)
+                    <div class="form-text text-muted small">Mínimo: <strong>{{ $emUso['porta'] }}</strong> — a porta {{ $emUso['porta'] }} está {{ $emUso['motivo'] }}.</div>
+                @endif
             </div>
             
             <div class="d-flex justify-content-between">

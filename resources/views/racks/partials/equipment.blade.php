@@ -1,5 +1,5 @@
 @php
-    $equipamentosDesenho = $rack->equipamentos()->with('modeloSwitch')->get();
+    $equipamentosDesenho = $rack->equipamentos()->with('modeloSwitch', 'portasSwitch.tipo')->get();
 
     /**
      * Calcula a posição (linha/coluna) de cada porta no painel frontal.
@@ -110,10 +110,12 @@
     }
     .sw-port.top .sw-jack::before { transform: rotate(180deg); }
     .sw-port:hover .sw-jack { transform: scale(1.15); }
+    /* faixa com a cor do tipo da porta do switch (fica entre as duas linhas de portas) */
+    .sw-tipo { display: block; width: 100%; height: 3px; border-radius: 1px; }
 </style>
 
 @if($equipamentosDesenho->isEmpty())
-    <div class="text-muted small">Nenhum equipamento para desenhar.</div>
+    <div class="text-muted small">Nenhum switch para desenhar.</div>
 @else
 <div class="sw-wrap">
     <div class="sw-rack">
@@ -122,6 +124,7 @@
                 $modelo = $equipamento->modeloSwitch;
                 $totalPortas = (int) ($modelo?->qtde_portas ?: 24);
                 $blocos = $layoutPortas($totalPortas, $modelo?->numeracao_portas ?? 'horizontal');
+                $tiposDasPortas = $equipamento->portasSwitch->keyBy('porta');
             @endphp
             <div class="sw-unit" data-dev="{{ $equipamento->id }}">
                 <div class="sw-title">
@@ -132,8 +135,12 @@
                             {{ $equipamento->hostname }}
                         @endcan
                     </span>
-                    <small>
+                    <small class="d-flex align-items-center gap-2">
                         {{ $equipamento->ip ?: 'sem IP' }} · {{ $totalPortas }} portas
+                        <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2 sw-ver-cabos" data-dev="{{ $equipamento->id }}"
+                                title="Mostrar os patch cords deste switch até os patch panels">
+                            <i class="fas fa-project-diagram"></i> <span class="rot-mostrar">Patch cords</span><span class="rot-ocultar">Ocultar patch cords</span>
+                        </button>
                     </small>
                 </div>
                 <div class="sw-chassis">
@@ -156,15 +163,20 @@
                                 @foreach($grupos as $grupo)
                                     <div class="sw-group">
                                         @foreach($grupo as $p)
+                                            @php $tipoSw = $tiposDasPortas->get($p['porta'])?->tipo; @endphp
                                             <div class="sw-port net-port {{ $p['linha'] === 1 ? 'top' : 'bottom' }}"
                                                  style="grid-row: {{ $p['linha'] }}; grid-column: {{ $p['col'] }};"
                                                  data-kind="sw"
                                                  data-dev="{{ $equipamento->id }}"
                                                  data-porta="{{ $p['porta'] }}"
                                                  data-label="{{ $equipamento->hostname }}"
-                                                 data-tip="{{ $equipamento->hostname }} · porta {{ $p['porta'] }}">
+                                                 data-tip="{{ $equipamento->hostname }} · porta {{ $p['porta'] }}"
+                                                 data-tipo-id="{{ $tipoSw?->id }}"
+                                                 data-tipo-cor="{{ $tipoSw?->cor }}"
+                                                 data-tipo-nome="{{ $tipoSw ? $tipoSw->nome . ($tipoSw->vlan ? ' · VLAN ' . $tipoSw->vlan : '') : '' }}">
                                                 <span class="sw-num"><i></i>{{ $p['porta'] }}</span>
                                                 <span class="sw-jack"></span>
+                                                <span class="sw-tipo" style="background: {{ $tipoSw?->cor ?: 'transparent' }};"></span>
                                             </div>
                                         @endforeach
                                     </div>
@@ -186,5 +198,10 @@
     <span class="net-legend-item">
         <span class="sw-poe" style="margin: 0;">PoE</span>Modelo com PoE
     </span>
+    @foreach($equipamentosDesenho->flatMap->portasSwitch->pluck('tipo')->filter()->unique('id')->sortBy('nome') as $t)
+        <span class="net-legend-item">
+            <span class="net-swatch" style="background: {{ $t->cor ?: 'transparent' }}; height: 6px;"></span>{{ $t->nome }}@if($t->vlan) (VLAN {{ $t->vlan }})@endif
+        </span>
+    @endforeach
 </div>
 @endif

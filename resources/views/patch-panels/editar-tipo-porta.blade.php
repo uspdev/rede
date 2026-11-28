@@ -5,7 +5,7 @@
     <div class="card-header bg-usp">
         <h1 class="h4 mb-0 text-dark">
             Editar Tipo de Porta - Porta {{ $porta }}
-            <small class="text-muted d-block">Patch Panel: {{ $patchPanel->nome }} | Sala: {{ $sala->nome }}</small>
+            <small class="text-muted d-block">Patch Panel: {{ $patchPanel->nome }} | Sala/Ambiente: {{ $sala->nome }}</small>
         </h1>
     </div>
     <div class="card-body">

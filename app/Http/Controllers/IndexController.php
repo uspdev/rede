@@ -9,8 +9,9 @@ class IndexController extends Controller
     public function index(){
 
         $predios = Predio::with([
-            'racks' => fn ($q) => $q->orderBy('nome'),
-            'racks.equipamentos' => fn ($q) => $q->orderBy('ordem'),
+            'telecomRooms' => fn ($q) => $q->orderBy('nome'),
+            'telecomRooms.racks' => fn ($q) => $q->orderBy('nome'),
+            'telecomRooms.racks.equipamentos' => fn ($q) => $q->orderBy('ordem'),
         ])->orderBy('nome')->get();
 
         return view('index',['predios' => $predios]);

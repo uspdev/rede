@@ -4,10 +4,12 @@
 <!-- Token CSRF do Laravel para requisições AJAX do Drag and Drop -->
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
+<div data-foco-alvo>
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
     <a href="{{ route('plantas.index', ['predio' => $planta->predio_id]) }}" style="text-decoration: none; color: #000; background-color: #f0f0f0; padding: 6px 12px; border-radius: 4px; font-size: 14px;">
         &larr; Voltar
     </a>
+    @include('partials.tela-cheia')
 
     <!-- Controles de Zoom -->
     <div style="display: flex; gap: 5px; align-items: center; background: #f8fafc; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
@@ -19,7 +21,7 @@
 </div>
 
 <!-- Viewport fixa para enquadrar a planta -->
-<div id="viewport" style="position: relative; width: 100%; height: 80vh; overflow: hidden; border: 1px solid #ccc; background-color: #f8fafc; border-radius: 6px;">
+<div id="viewport" data-foco-altura style="position: relative; width: 100%; height: 80vh; overflow: hidden; border: 1px solid #ccc; background-color: #f8fafc; border-radius: 6px;">
 
     <!-- Alvo do Panzoom -->
     <div id="panzoom-target" style="position: relative; width: 100%; transform-origin: 0 0; cursor: grab;">
@@ -35,7 +37,7 @@
     <!-- Formulário Pop-up Nativo -->
     <div id="popoverForm" style="display: none; position: absolute; background: #fff; border: 1px solid #000; padding: 12px; z-index: 1000; min-width: 260px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
 
-        <strong id="formTitle" style="display: block; font-size: 13px; margin-bottom: 8px;">Selecione a Sala:</strong>
+        <strong id="formTitle" style="display: block; font-size: 13px; margin-bottom: 8px;">Selecione a Sala/Ambiente:</strong>
 
         <!-- Formulário 1: Salvar/Editar Coordenada, Fonte e Descrição da Sala -->
         <form action="" method="POST" id="mainForm">
@@ -48,13 +50,20 @@
 
             <!-- Seleção da Sala (Oculto na Edição) -->
             <div id="groupSalaSelect" style="margin-bottom: 8px;">
-                <label style="display: block; font-size: 11px; margin-bottom: 2px;">Sala:</label>
+                <label style="display: block; font-size: 11px; margin-bottom: 2px;">Sala/Ambiente:</label>
                 <select name="sala_select" id="sala_select" style="width: 100%; padding: 5px;" onchange="updateFormAction()">
-                    <option value="" data-descricao="">-- Selecione a Sala --</option>
+                    <option value="" data-descricao="">-- Selecione a Sala/Ambiente --</option>
+                    <option value="__nova__" data-descricao="" style="font-weight: bold;">+ Nova sala/ambiente…</option>
                     @foreach($salasNotMarkerd as $sala)
                         <option value="{{ $sala->id }}" data-descricao="{{ $sala->descricao }}">{{ $sala->nome }}</option>
                     @endforeach
                 </select>
+            </div>
+
+            <!-- Nome da nova sala/ambiente (só ao criar direto na planta) -->
+            <div id="groupNovaSala" style="display: none; margin-bottom: 8px;">
+                <label style="display: block; font-size: 11px; margin-bottom: 2px;">Nome/Número da nova sala/ambiente *</label>
+                <input type="text" name="nome" id="inputNomeNova" maxlength="255" placeholder="Ex: 101, Corredor B, Saguão" style="width: 100%; padding: 5px; box-sizing: border-box; font-size: 12px;">
             </div>
 
             <!-- Descrição da Sala -->
@@ -80,7 +89,7 @@
             @csrf
             @method('DELETE')
             
-            <button type="submit" onclick="return confirm('Desvincular esta sala da planta baixa?');" style="width: 100%; background: #dc3545; color: #fff; border: none; padding: 6px; cursor: pointer; border-radius: 3px; font-weight: bold;">
+            <button type="submit" onclick="return confirm('Desvincular esta sala/ambiente da planta baixa?');" style="width: 100%; background: #dc3545; color: #fff; border: none; padding: 6px; cursor: pointer; border-radius: 3px; font-weight: bold;">
                 Remover Marcação
             </button>
         </form>
@@ -89,6 +98,7 @@
 
 </div>
 
+</div>{{-- data-foco-alvo --}}
 <script>
     const viewport = document.getElementById('viewport');
     const panzoomTarget = document.getElementById('panzoom-target');
@@ -102,6 +112,10 @@
     const inputFontsize = document.getElementById('inputFontsize');
     const inputX = document.getElementById('inputX');
     const inputY = document.getElementById('inputY');
+    const groupNovaSala = document.getElementById('groupNovaSala');
+    const inputNomeNova = document.getElementById('inputNomeNova');
+    const URL_CRIAR_E_MARCAR = @json(route('salas.criar-e-marcar', ['planta' => $planta]));
+    const methodInput = mainForm.querySelector('input[name="_method"]');
     const plantaId = "{{ $planta->id }}";
 
     let panzoom;
@@ -110,6 +124,18 @@
     function updateFormAction() {
         const selectedOption = salaSelect.options[salaSelect.selectedIndex];
         const salaId = salaSelect.value;
+        const nova = salaId === '__nova__';
+
+        // Nova sala/ambiente: cria (POST) já com a posição clicada; existente: marca (PUT)
+        groupNovaSala.style.display = nova ? 'block' : 'none';
+        inputNomeNova.required = nova;
+        methodInput.disabled = nova;
+        if (nova) {
+            mainForm.action = URL_CRIAR_E_MARCAR;
+            inputDescricao.value = "";
+            setTimeout(() => inputNomeNova.focus(), 0);
+            return;
+        }
 
         if (salaId) {
             mainForm.action = @json(route('salas.mark', ['sala' => '__SALA__', 'planta' => '__PLANTA__']))
@@ -123,10 +149,16 @@
     }
 
     mainForm.addEventListener('submit', function (e) {
+        // nunca enviar para a própria página (action vazia)
+        if (!mainForm.getAttribute('action')) {
+            e.preventDefault();
+            alert('Por favor, selecione uma sala/ambiente ou escolha "+ Nova sala/ambiente…".');
+            return;
+        }
         // Se estiver no modo de criação e nenhuma sala for selecionada
         if (groupSalaSelect.style.display !== 'none' && !salaSelect.value) {
             e.preventDefault();
-            alert('Por favor, selecione uma sala.');
+            alert('Por favor, selecione uma sala/ambiente.');
         }
     });
 
@@ -175,17 +207,20 @@
 
             if (targetElement === svgImage) {
                 // === MODO: NOVA MARCAÇÃO DE SALA ===
-                document.getElementById('formTitle').innerText = 'Selecione a Sala:';
+                document.getElementById('formTitle').innerText = 'Selecione a Sala/Ambiente:';
                 
                 inputX.value = xPercent.toFixed(2);
                 inputY.value = yPercent.toFixed(2);
                 inputFontsize.value = 12;
                 inputDescricao.value = "";
-                salaSelect.value = "";
+                // Sem salas/ambientes pendentes: já abre no modo de criar
+                salaSelect.value = salaSelect.options.length <= 2 ? "__nova__" : "";
                 salaSelect.required = true;
-
+                inputNomeNova.value = "";
                 groupSalaSelect.style.display = 'block';
                 mainForm.action = "";
+                // depois de limpar: define a rota certa (criar e marcar, se for "nova")
+                updateFormAction();
                 mainForm.style.display = 'block';
                 deleteForm.style.display = 'none';
 
@@ -258,11 +293,14 @@
                         const currentX = parseFloat(marker.style.left);
                         const currentY = parseFloat(marker.style.top);
 
-                        document.getElementById('formTitle').innerText = 'Editar Sala: ' + salaNome;
+                        document.getElementById('formTitle').innerText = 'Editar Sala/Ambiente: ' + salaNome;
                         
                         // Oculta o select pois a sala já está selecionada
                         groupSalaSelect.style.display = 'none';
                         salaSelect.required = false;
+                        groupNovaSala.style.display = 'none';
+                        inputNomeNova.required = false;
+                        methodInput.disabled = false;
 
                         // Preenche os campos do formulário principal para atualização
                         mainForm.action = @json(route('salas.mark', ['sala' => '__SALA__', 'planta' => '__PLANTA__']))
@@ -322,7 +360,7 @@
         })
         .then(response => {
             if (!response.ok) {
-                alert('Erro ao atualizar a posição da sala.');
+                alert('Erro ao atualizar a posição da sala/ambiente.');
             }
         })
         .catch(error => {
@@ -340,6 +378,10 @@
         popoverForm.style.display = 'none';
         salaSelect.value = '';
         inputDescricao.value = '';
+        inputNomeNova.value = '';
+        groupNovaSala.style.display = 'none';
+        inputNomeNova.required = false;
+        methodInput.disabled = false;
     }
 
     // Bloqueio de Zoom do Navegador (Teclado e Roda do Mouse)

@@ -32,10 +32,13 @@
                             <i class="fas fa-edit"></i> Editar Planta
                         </a>
                         <a href="{{ route('salas.markers', ['planta' => $planta]) }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-edit"></i> Marcar Salas
+                            <i class="fas fa-edit"></i> Marcar Salas/Ambientes
                         </a>
                         <a href="{{ route('plantas.mark', ['planta' => $planta]) }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-edit"></i> Marcar planta
+                            <i class="fas fa-network-wired"></i> Marcar pontos de rede
+                        </a>
+                        <a href="{{ route('plantas.percursos', ['planta' => $planta]) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-route"></i> Infraestrutura
                         </a>
                         <form action="{{ route('plantas.destroy', ['predio' => $planta->predio_id, 'planta' => $planta]) }}" method="post" class="d-inline">
                             @csrf
@@ -58,6 +61,9 @@
                              class="img-fluid rounded" 
                              style="width: 100%; height: auto; display: block;" 
                              alt="Planta Baixa">
+
+                        <!-- Eletrocalhas, canaletas e dutos -->
+                        @include('plantas.partials.percursos', ['percursos' => $planta->percursos])
 
                         <!-- Marcadores da Planta (Triângulos e Nomes) -->
                         @include('plantas.partials.markers', ['markers' => $planta->markers])

@@ -1,16 +1,13 @@
 @extends('main')
 
 @section('content')
-@php
-    $totalHistorico = array_sum($historico);
-@endphp
 
 <br>
 
 <div class="card border-danger">
     <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
         <span class="h5 mb-0">
-            <i class="fas fa-exclamation-triangle"></i> Excluir equipamento: {{ $equipamento->hostname }}
+            <i class="fas fa-exclamation-triangle"></i> Excluir switch: {{ $equipamento->hostname }}
         </span>
         <a href="{{ route('racks.show', ['rack' => $equipamento->rack]) }}" class="btn btn-light btn-sm">
             <i class="fas fa-arrow-left"></i> Voltar sem excluir
@@ -24,21 +21,16 @@
             <strong>Rack:</strong> {{ $equipamento->rack->nome }} ({{ $equipamento->rack->predio->nome ?? '—' }})
         </p>
 
-        @if($conexoes->isEmpty() && $totalHistorico === 0)
+        @if($conexoes->isEmpty())
             <div class="alert alert-success mt-3 mb-4">
-                Este equipamento não tem nenhuma porta conectada. Só o equipamento será excluído.
+                Este switch não tem nenhuma porta conectada. Só o switch será excluído.
             </div>
         @else
             <div class="alert alert-warning mt-3 mb-4">
-                <strong>Atenção:</strong> ao excluir este equipamento, também serão apagadas
+                <strong>Atenção:</strong> ao excluir este switch, também serão apagadas
                 <strong>{{ $conexoes->count() }}</strong> conexão(ões) com patch panels
-                @if($totalHistorico)
-                    e o histórico de portas coletado pela API
-                    (<strong>{{ $historico['portas'] }}</strong> porta(s),
-                    <strong>{{ $historico['snapshots'] }}</strong> leitura(s),
-                    <strong>{{ $historico['macs'] }}</strong> MAC(s))
-                @endif.
-                Os vínculos dos patch panels com as salas <strong>não</strong> são afetados.
+.
+                Os vínculos dos patch panels com as salas/ambientes <strong>não</strong> são afetados.
                 Confira a lista abaixo. <strong>Não é possível desfazer.</strong>
             </div>
         @endif
@@ -52,7 +44,7 @@
                             <th width="130px">Porta do switch</th>
                             <th>Patch panel</th>
                             <th>Porta do patch panel</th>
-                            <th>Sala</th>
+                            <th>Sala/Ambiente</th>
                             <th>Tipo de porta</th>
                         </tr>
                     </thead>
@@ -103,10 +95,10 @@
                 <input class="form-check-input" type="checkbox" name="confirmo" value="1" id="confirmo" required>
                 <label class="form-check-label" for="confirmo">
                     @if($conexoes->isNotEmpty())
-                        Conferi a lista e quero excluir o equipamento <strong>{{ $equipamento->hostname }}</strong>
+                        Conferi a lista e quero excluir o switch <strong>{{ $equipamento->hostname }}</strong>
                         com suas <strong>{{ $conexoes->count() }}</strong> conexão(ões).
                     @else
-                        Quero excluir o equipamento <strong>{{ $equipamento->hostname }}</strong>.
+                        Quero excluir o switch <strong>{{ $equipamento->hostname }}</strong>.
                     @endif
                 </label>
             </div>

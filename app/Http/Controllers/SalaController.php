@@ -27,9 +27,9 @@ class SalaController extends Controller
     {
         Gate::authorize('admin');
         Sala::create($request->validated() + ['user_id' => auth()->id()]);
-        session()->flash('alert-success', 'Sala criada com sucesso!');
+        session()->flash('alert-success', 'Sala/ambiente criada com sucesso!');
 
-        return redirect()->route('predios.show', ['predio' => $request->predio_id]);
+        return redirect()->route('predios.salas', ['predio' => $request->predio_id]);
     }
 
     public function show(Sala $sala)
@@ -65,7 +65,7 @@ class SalaController extends Controller
     {
         Gate::authorize('admin');
         $sala->update($request->validated() + ['user_id' => auth()->id()]);
-        session()->flash('alert-success', 'Sala atualizada com sucesso!');
+        session()->flash('alert-success', 'Sala/ambiente atualizada com sucesso!');
 
         return redirect()->route('salas.show', ['sala' => $sala]);
     }
@@ -76,9 +76,9 @@ class SalaController extends Controller
 
         if($sala->patchPanels->isEmpty()){
             $sala->delete();
-            session()->flash('alert-success', 'Sala removida com sucesso!');
+            session()->flash('alert-success', 'Sala/ambiente removida com sucesso!');
         } else {
-            session()->flash('alert-danger', 'Sala não pode ser removida, pois possui portas vinculadas');
+            session()->flash('alert-danger', 'Sala/ambiente não pode ser removida, pois possui portas vinculadas');
         }
         return back();
     }
@@ -139,11 +139,42 @@ class SalaController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Posição da sala atualizada com sucesso!'
+                'message' => 'Posição da sala/ambiente atualizada com sucesso!'
             ]);
         }
 
-        return redirect()->back()->with('success', 'Sala vinculada à planta com sucesso!');
+        return redirect()->back()->with('success', 'Sala/ambiente vinculada à planta com sucesso!');
+    }
+
+    /**
+     * Cria uma sala/ambiente no prédio da planta já marcada no ponto clicado.
+     */
+    public function criarEMarcar(Planta $planta, Request $request)
+    {
+        Gate::authorize('admin');
+
+        $validated = $request->validate([
+            'nome'      => 'required|string|max:255',
+            'descricao' => 'nullable|string|max:255',
+            'x'         => 'required|numeric|between:0,100',
+            'y'         => 'required|numeric|between:0,100',
+            'fontsize'  => 'nullable|integer|min:2|max:50',
+        ], [
+            'nome.required' => 'Informe o nome/número da nova sala/ambiente.',
+        ]);
+
+        $sala = Sala::create([
+            'nome'      => $validated['nome'],
+            'descricao' => $validated['descricao'] ?? null,
+            'predio_id' => $planta->predio_id,
+            'planta_id' => $planta->id,
+            'x'         => $validated['x'],
+            'y'         => $validated['y'],
+            'fontsize'  => $validated['fontsize'] ?? 12,
+            'user_id'   => auth()->id(),
+        ]);
+
+        return redirect()->back()->with('success', "Sala/ambiente {$sala->nome} criada e marcada na planta!");
     }
 
     public function unmark(Sala $sala)
@@ -157,6 +188,6 @@ class SalaController extends Controller
             'planta_id' => null,
         ]);
 
-        return back()->with('success', 'Sala removido com sucesso!');
+        return back()->with('success', 'Sala/ambiente removida da planta com sucesso!');
     }
 }

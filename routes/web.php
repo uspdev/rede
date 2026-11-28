@@ -6,9 +6,12 @@ use App\Http\Controllers\EquipamentoController;
 use App\Http\Controllers\PredioController;
 use App\Http\Controllers\SalaController;
 use App\Http\Controllers\RackController;
+use App\Http\Controllers\TelecomRoomController;
 use App\Http\Controllers\PatchPanelController;
 use App\Http\Controllers\TipoPortaController;
+use App\Http\Controllers\TipoPortaSwitchController;
 use App\Http\Controllers\PlantaController;
+use App\Http\Controllers\PlantaPercursoController;
 use App\Http\Controllers\ModeloSwitchController;
 use App\Http\Controllers\ConexaoController;
 
@@ -28,6 +31,8 @@ Route::get('/predios', [PredioController::class, 'index'])->name('predios.index'
 Route::get('/predios/create', [PredioController::class, 'create'])->name('predios.create');
 Route::post('/predios', [PredioController::class, 'store'])->name('predios.store');
 Route::get('/predios/{predio}', [PredioController::class, 'show'])->name('predios.show');
+Route::get('/predios/{predio}/trs', [PredioController::class, 'trs'])->name('predios.trs');
+Route::get('/predios/{predio}/salas', [PredioController::class, 'salas'])->name('predios.salas');
 Route::get('/predios/{predio}/edit', [PredioController::class, 'edit'])->name('predios.edit');
 Route::put('/predios/{predio}', [PredioController::class, 'update'])->name('predios.update');
 Route::delete('/predios/{predio}', [PredioController::class, 'destroy'])->name('predios.destroy');
@@ -37,6 +42,7 @@ Route::get('/salas/create', [SalaController::class, 'create'])->name('salas.crea
 Route::post('/salas', [SalaController::class, 'store'])->name('salas.store');
 
 Route::get('/salas/{planta}/markers', [SalaController::class, 'markers'])->name('salas.markers');
+Route::post('/salas/{planta}/criar-e-marcar', [SalaController::class, 'criarEMarcar'])->name('salas.criar-e-marcar');
 Route::delete('/salas/{sala}/unmark', [SalaController::class, 'unmark'])->name('salas.unmark');
 Route::put('/salas/{sala}/{planta}/mark', [SalaController::class, 'mark'])->name('salas.mark');
 
@@ -47,10 +53,19 @@ Route::delete('/salas/{sala}', [SalaController::class, 'destroy'])->name('salas.
 Route::get('/salas/{planta}/mark', [PlantaController::class, 'mark'])->name('salas.planta.mark');
 
 
+// Telecommunications Rooms (TR)
+Route::get('/telecom-rooms/create', [TelecomRoomController::class, 'create'])->name('telecom-rooms.create');
+Route::post('/telecom-rooms', [TelecomRoomController::class, 'store'])->name('telecom-rooms.store');
+Route::get('/telecom-rooms/{telecomRoom}', [TelecomRoomController::class, 'show'])->name('telecom-rooms.show');
+Route::get('/telecom-rooms/{telecomRoom}/edit', [TelecomRoomController::class, 'edit'])->name('telecom-rooms.edit');
+Route::put('/telecom-rooms/{telecomRoom}', [TelecomRoomController::class, 'update'])->name('telecom-rooms.update');
+Route::delete('/telecom-rooms/{telecomRoom}', [TelecomRoomController::class, 'destroy'])->name('telecom-rooms.destroy');
+
 // Racks
 Route::get('/racks/create', [RackController::class, 'create'])->name('racks.create');
 Route::post('/racks', [RackController::class, 'store'])->name('racks.store');
 Route::get('/racks/{rack}', [RackController::class, 'show'])->name('racks.show');
+Route::get('/racks/{rack}/imprimir', [RackController::class, 'imprimir'])->name('racks.imprimir');
 Route::get('/racks/{rack}/edit', [RackController::class, 'edit'])->name('racks.edit');
 Route::put('/racks/{rack}', [RackController::class, 'update'])->name('racks.update');
 Route::delete('/racks/{rack}', [RackController::class, 'destroy'])->name('racks.destroy');
@@ -72,6 +87,9 @@ Route::get('/equipamentos/{equipamento}', [EquipamentoController::class, 'show']
 Route::get('/equipamentos/{equipamento}/edit', [EquipamentoController::class, 'edit'])->name('equipamentos.edit');
 Route::get('/equipamentos/{equipamento}/excluir', [EquipamentoController::class, 'confirmarExclusao'])->name('equipamentos.excluir');
 Route::put('/equipamentos/{equipamento}', [EquipamentoController::class, 'update'])->name('equipamentos.update');
+// Tipo de uma porta do switch (JSON; tipo_porta_switch_id vazio remove o tipo)
+Route::put('/equipamentos/{equipamento}/porta/{porta}/tipo', [EquipamentoController::class, 'salvarTipoPorta'])->whereNumber('porta')->name('equipamentos.porta.tipo');
+Route::put('/equipamentos/{equipamento}/portas/tipo', [EquipamentoController::class, 'salvarTipoPortas'])->name('equipamentos.portas.tipo');
 Route::delete('/equipamentos/{equipamento}', [EquipamentoController::class, 'destroy'])->name('equipamentos.destroy');
 
 // Tipo Portas
@@ -83,6 +101,14 @@ Route::get('/tipo-portas/{tipoPorta}/edit', [TipoPortaController::class, 'edit']
 Route::put('/tipo-portas/{tipoPorta}', [TipoPortaController::class, 'update'])->name('tipo-portas.update');
 Route::delete('/tipo-portas/{tipoPorta}', [TipoPortaController::class, 'destroy'])->name('tipo-portas.destroy');
 
+// Tipo Portas de Switch
+Route::get('/tipo-portas-switch', [TipoPortaSwitchController::class, 'index'])->name('tipo-portas-switch.index');
+Route::get('/tipo-portas-switch/create', [TipoPortaSwitchController::class, 'create'])->name('tipo-portas-switch.create');
+Route::post('/tipo-portas-switch', [TipoPortaSwitchController::class, 'store'])->name('tipo-portas-switch.store');
+Route::get('/tipo-portas-switch/{tipoPortaSwitch}/edit', [TipoPortaSwitchController::class, 'edit'])->name('tipo-portas-switch.edit');
+Route::put('/tipo-portas-switch/{tipoPortaSwitch}', [TipoPortaSwitchController::class, 'update'])->name('tipo-portas-switch.update');
+Route::delete('/tipo-portas-switch/{tipoPortaSwitch}', [TipoPortaSwitchController::class, 'destroy'])->name('tipo-portas-switch.destroy');
+
 // Plantas
 Route::get('/plantas/public/{planta}', [PlantaController::class, 'showPublic'])->name('plantas.public');
 Route::get('/plantas/pdf/{planta}', [PlantaController::class, 'pdfPublic'])->name('plantas.pdf');
@@ -90,6 +116,11 @@ Route::get('/plantas/imprimir/{planta}', [PlantaController::class, 'imprimir'])-
 Route::post('/plantas/{predio}', [PlantaController::class, 'store'])->name('plantas.store');
 Route::get('/plantas/{planta}/edit', [PlantaController::class, 'edit'])->name('plantas.edit');
 Route::get('/plantas/{planta}/mark', [PlantaController::class, 'editMark'])->name('plantas.mark');
+// Camada de infraestrutura (eletrocalhas, canaletas, dutos) — antes de /plantas/{predio}/{planta}
+Route::get('/plantas/{planta}/percursos', [PlantaPercursoController::class, 'index'])->name('plantas.percursos');
+Route::post('/plantas/{planta}/percursos', [PlantaPercursoController::class, 'store'])->name('plantas.percursos.store');
+Route::put('/percursos/{percurso}', [PlantaPercursoController::class, 'update'])->name('percursos.update');
+Route::delete('/percursos/{percurso}', [PlantaPercursoController::class, 'destroy'])->name('percursos.destroy');
 Route::delete('/plantas/{patch_panel_sala_id}/unmark', [PlantaController::class, 'unmark'])->name('plantas.unmark');
 Route::put('/plantas/{planta}/mark', [PlantaController::class, 'mark'])->name('plantas.mark.update');
 Route::put('/plantas/{planta}/config', [PlantaController::class, 'config'])->name('plantas.config');
